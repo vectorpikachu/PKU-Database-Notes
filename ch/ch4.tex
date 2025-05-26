@@ -1,0 +1,277 @@
+\chapter{SQL}
+
+SQL: Structured Query Languang
+
+SQL语言的特点:
+\begin{enumerate}
+    \item 语言简洁，易学易用。
+    \item 面向集合的操作方式，一次一集合。
+    \item 高度非过程化。\textit{用户只需提出“做什么” ，无须告诉“怎么做”}
+    \item 一体化。单一的结构——关系，带来了数据操作符的统一。
+    \item 两种使用方式，统一的语法结构。
+    \begin{enumerate}
+        \item 既是自含式(用户使用)的
+        \item 又是嵌入式的(程序员使用)
+    \end{enumerate}
+\end{enumerate}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline
+    \textbf{SQL功能} & \textbf{操作符} \\
+    \hline
+    数据定义 & \verb|create|, \verb|alter|, \verb|drop| \\
+    \hline
+    数据查询 & \verb|select| \\
+    \hline
+    数据修改 & \verb|insert|, \verb|update|, \verb|delete| \\
+    \hline
+    数据控制 & \verb|grant|, \verb|revoke| \\
+    \hline
+  \end{tabular}
+  \caption{SQL主要操作符}
+\end{table}
+
+text2SQL: 建立自然语言与结构化数据之间的关系。
+
+\section{数据模式定义}
+
+\begin{figure}[H]
+  \centering
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{./figure/标准SQL.pdf}
+    \caption{标准SQL中的数据定义对象}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.5\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{./figure/实际.pdf}
+    \caption{实际数据库(SQL Server)中的定义对象}
+  \end{minipage}
+\end{figure}
+
+SQL Server: 模式把对象和用户分离开来.
+
+对象命名: \verb|<数据库>.<模式>.<表>|.
+
+创建模式:
+\begin{lstlisting}[language=SQL]
+create schema <模式名>
+create schema University.Library
+\end{lstlisting}
+
+数据库定义: SQL Server
+\begin{lstlisting}[language=SQL]
+create database <数据库名>
+  [on [primary] <文件描述> <文件组> ...]
+  [log on <文件描述> <文件组> ...]
+\end{lstlisting}
+
+最简单的创建数据库的命令: \verb|create databse University|.
+
+\verb|use| 命令指定当前要使用的数据库: \verb|use University|.
+
+\begin{lstlisting}[language=SQL]
+create database demoDB1
+on primary
+( name = demo_dat1,
+  filename = 'D:\SQL_Practice\demodata1.mdf',
+  size = 10,
+  maxsize = 50)
+log on
+(
+  name = demo_log1,
+  filename = 'D:\SQL_Practice\demodata1.ldf',
+  size = 5,
+  filegrowth = 5
+)
+\end{lstlisting}
+
+数据库定义: MySQL
+\begin{lstlisting}[language=SQL]
+create database <数据库名>
+  [ default character set utf8
+    default collate utf8_Chinese_ci ]
+\end{lstlisting}
+
+\verb|create database| 等于 \verb|create schema|.
+
+MySQL表空间:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.45\textwidth]{./figure/MySQL表空间.pdf}
+    \caption{MySQL表空间}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+create tablespace myTs 'ts1.ibd' engine = innodb
+create tablespace myTs add datafile
+  'F:\\test_mysql_tablespace\\first.ibd'
+create table myTb (...) tablespace myTs
+\end{lstlisting}
+
+创建基本表的语法命令:
+\begin{lstlisting}[language=SQL]
+create table <表名> (
+  <列名> <数据类型> [default <缺省值>] [not null] [unique]
+  [, <列名> <数据类型> [default <缺省值>] [not null] [unique]]
+  ...
+  [, primary key (<列名> [, <列名>] ...)]
+  [, foreign key (<列名> [, <列名>] ...)
+    references <表名> (<列名> [, <列名>] ...)]
+  [, check(<条件>)]
+)
+\end{lstlisting}
+
+下面是创建表的一些例子:
+\begin{lstlisting}[language=SQL]
+create table student
+( sno char(8),
+  sname char(8) not null default '佚名',
+  age tinyint,
+  sex char(1),
+  primary key (sno),
+  check (sex = 'M' or sex='F')
+)
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+create table course
+( cno char(8) primary key,
+  cname char(8) not null unique,
+  pcno char(8) foreign key references C(cno),
+  credit tinyint
+)
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+create table SC
+( sno char(8) foreign key references S(sno),
+  cno char(8) foreign key references C(cno),
+  grade tinyint,
+  primary key (sno, cno),
+  check((grade is null) or grade between 0 and 100)
+)
+\end{lstlisting}
+
+修改基本表: 更改、添加、除去列和约束.
+\begin{lstlisting}[language=SQL]
+alter table <表名>
+  [add column <子句>]
+  [add constraint <子句>]
+  [drop <子句>]
+  [alter column <子句>]
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+-- 在student表age列之后加入addr
+alter table student add column addr CHAR(30) after age;
+-- 把addr列重命名为address
+alter table student change addr address CHAR(50) not null;
+-- 试修改teacher表中的salary列的数据类型为bigint
+alter table teacher modify salary bigint;
+-- 重命名一个表中的列名从sal到salary
+alter table rename sal to salary
+\end{lstlisting}
+
+删除基本表:
+\begin{lstlisting}[language=SQL]
+drop table <表名>;
+\end{lstlisting}
+删除表定义及该表的所有数据、索引、触发器、约束和权限规范.
+
+drop table不能删除被foreign key约束所引用的表, 必须先除去foreign key约束或引用表.
+
+任何引用已删除表的视图或存储过程必须通过drop view或drop procedure语句显式除去.
+
+标准SQL中的信息视图:
+\begin{lstlisting}[language=SQL]
+INFORMATION_SCHEMA.SCHEMATA
+INFORMATION_SCHEMA.TABLES
+INFORMATION_SCHEMA.COLUMNS
+INFORMATION_SCHEMA.CHECK_CONSTRAINTS
+INFORMATION_SCHEMA.VIEWS
+INFORMATION_SCHEMA.DOMAINS
+\end{lstlisting}
+
+MySQL中的信息视图查询:
+\begin{lstlisting}[language=SQL]
+select shcema_name from information_schema.schemata;
+select table_name from information_schema.tables;
+select column_name from information_schema.columns where table_name = 'student';
+\end{lstlisting}
+
+\begin{table}[H]
+\centering
+\label{tab:sysobjects}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{sysobjects} \\ \hline
+\textbf{列名} & \textbf{数据类型} & \textbf{描述} \\ \hline
+name & sysname & 对象名 \\ \hline
+Id & int & 对象标识号 \\ \hline
+xtype & char(2) & 对象类型 \\ \hline
+uid & smallint & 所有者对象的用户ID \\ \hline
+crdate & datetime & 对象的创建日期 \\ \hline
+schema\_ver & int & 版本号，该版本号在每次表的架构更改时都增加 \\ \hline
+\end{tabular}
+\caption{表定义相关的字典表: SQL Server}
+\end{table}
+
+\begin{table}[H]
+\centering
+\label{tab:syscolumns}
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{3}{|c|}{syscolumns} \\ \hline
+\textbf{列名} & \textbf{数据类型} & \textbf{描述} \\ \hline
+name & sysname & 列名或过程参数的名称 \\ \hline
+id & int & 该列所属的表对象ID \\ \hline
+ xtype & tinyint & systypes 中的物理存储类型 \\ \hline
+xusertype & smallint & 扩展的用户定义数据类型ID \\ \hline
+length & smallint & systypes 中的最大物理存储长度 \\ \hline
+offset & smallint & 该列所在行的偏移量；如果为负，表示可变长度行 \\ \hline
+type & tinyint & systypes 中的物理存储类型 \\ \hline
+usertype & smallint & systypes 中的用户定义数据类型ID \\ \hline
+isnullable & int & 表示该列是否允许空值 \\ \hline
+\end{tabular}
+\caption{表定义相关的字典表: SQL Server}
+\end{table}
+
+SQL中, 任何时候都可以执行一个数据定义语句, 随时修改数据库结构.
+
+\subsection{数据类型}
+
+\begin{table}[H]
+\centering
+\label{tab:mysql_int_types}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{数据类型} & \textbf{范围} & \textbf{unsigned范围} & \textbf{存储字节数} \\ \hline
+tinyint & $-2^7 \sim 2^7 - 1$ & $0 \sim 2^8 - 1$ & 1字节 \\ \hline
+smallint & $-2^{15} \sim 2^{15} - 1$ & $0 \sim 2^{16} - 1$ & 2字节 \\ \hline
+mediumint & $-2^{23} \sim 2^{23} - 1$ & $0 \sim 2^{24} - 1$ & 3字节 \\ \hline
+int & $-2^{31} \sim 2^{31} - 1$ & $0 \sim 2^{32} - 1$ & 4字节 \\ \hline
+bigint & $-2^{63} \sim 2^{63} - 1$ & $0 \sim 2^{64} - 1$ & 8字节 \\ \hline
+\end{tabular}
+\caption{MySQL整数数据类型及其范围和存储字节数}
+\end{table}
+
+\begin{lstlisting}[language=SQL]
+create table test_int (
+  a(6) tinyint zerofill,
+  b(6) tinyint unsigned );
+insert into test_int values (1, 111);
+select a, b from test_int;
+-- a 000001 b 111
+select a - b from test_int;
+-- ERROR 1690 (22003): BIGINT UNSIGNED value is out of range
+\end{lstlisting}
+
+宽松模式: \verb|set sql_mode = 'ANSI'|. 对于违反数据约束的有一些默认操作.
+
+严格模式: \verb|set sql_mode = 'traditional'|. 直接报错.
+

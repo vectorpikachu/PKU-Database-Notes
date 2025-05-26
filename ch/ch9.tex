@@ -1,0 +1,19 @@
+\chapter{并发控制}
+
+\section{基于锁的协议}
+
+\begin{definition}[封锁]
+  \textcolor{red}{封锁}就是一个事务对某个数据对象加锁, 取得对它一定的控制, 限制其它事务对该数据对象使用.
+  
+  要访问数据项$R$, 事务$T_i$必须先申请对$R$的封锁, 如果$R$已经被事务$T_j$加了不相容的锁, 则$T_i$需要等待, 直至$T_j$释放它的封锁.
+\end{definition}
+
+\textcolor{red}{封锁性能}: 事务吞吐量, TPC-C.
+
+保证可串行化的一种协议是两阶段封锁协议(two-phase Locking protocol). 该协议要求每个事务分两个阶段提出加锁和解锁申请.
+\begin{enumerate}
+    \item 增长阶段(growing phase): 一个事务可以获得锁, 但不能释放任何锁.
+    \item 缩减阶段(shrinking phase): 一个事务可以释放锁, 但不能获得任何新锁.
+\end{enumerate}
+起初, 一个事务处于增长阶段. 事务根据需要获得锁. 一旦该事务释放了一个锁, 它就进入了缩减阶段, 并且它不能再发出加锁请求.
+

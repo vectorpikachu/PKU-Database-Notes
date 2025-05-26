@@ -1,0 +1,69 @@
+\documentclass[lang=cn,scheme=chinese, bibtex]{elegantbook}
+
+\title{《数据库概论》学习笔记}
+\subtitle{Introduction to Database Systems}
+
+\author{VectorPikachu}
+\institute{EECS, Peking University}
+\date{\today}
+%\version{4.5}
+%\bioinfo{自定义}{信息}
+
+%\extrainfo{注意：本模板自 2023 年 1 月 1 日开始，不再更新和维护！}
+
+\setcounter{tocdepth}{3}
+
+\logo{logo.jpg}
+\cover{cover.jpg}
+
+% 本文档命令
+\usepackage{array}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+% 修改标题页的橙色带
+\definecolor{customcolor}{RGB}{32,178,170}
+\colorlet{coverlinecolor}{customcolor}
+\usepackage{cprotect}
+\usepackage{float}
+
+\addbibresource[location=local]{reference.bib} % 参考文献，不要删除
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, tikzmark, trees, matrix, shapes}
+\usepackage{mathpazo}
+\usepackage{leftindex}
+
+\usepackage[linesnumbered,ruled,noline]{algorithm2e}
+\renewcommand{\algorithmcfname}{算法}
+\numberwithin{algocf}{chapter}
+\SetKwComment{Comment}{$\triangleright$~}{}
+
+\setmainfont{Palatino Linotype}
+
+\begin{document}
+
+\maketitle
+\frontmatter
+
+\tableofcontents
+
+\mainmatter
+
+\input{ch/ch3.tex}
+
+\input{ch/ch4.tex} 
+
+\input{ch/ch6.tex} % FINISHED.
+
+\input{ch/ch7.tex} % FINISHED.
+
+\input{ch/ch8.tex} % FINISHED.
+
+\input{ch/ch9.tex}
+
+\nocite{*}
+
+\printbibliography[heading=bibintoc, title=\ebibname]
+\appendix
+
+\end{document}

@@ -184,4 +184,93 @@ $F$由逻辑运算符连接算术表达式而成.
 \end{enumerate}
 \end{definition}
 
+\subsubsection{多元运算}
 
+\begin{definition}[并运算]
+\begin{align*}
+    R\cup S =\{r|r\in R\lor r \in S\}.
+\end{align*}
+关系$R$和$S$进行并运算的前提是它们必须是相容的.
+\begin{enumerate}
+    \item 关系$R$和$S$必须是同元的, 其属性数目必须相同.
+    \item 对$\forall i$, $R$的第$i$个属性和$S$的第$i$个属性的域必须相同.
+\end{enumerate}
+\end{definition}
+
+\begin{example}
+选修了001号或002号课程的学生号.
+\begin{align*}
+    &\Pi_{\text{sno}}(\sigma_{\text{cno}=001\lor \text{cno}=002}(\text{SC})) \\
+    &\Pi_{\text{sno}}(\sigma_{\text{cno}=001}(\text{SC})\lor \sigma_{\text{cno}=002}(\text{SC}))
+\end{align*}
+\end{example}
+
+\begin{definition}[差运算]
+\begin{align*}
+    R-S =\{r|r\in R\land r \not\in S\}.
+\end{align*}
+\end{definition}
+
+\begin{example}
+求选修了001号但未选修002号课程的学生号.
+\begin{align*}
+    &\Pi_{\text{sno}}(\sigma_{\text{cno}=001}(\text{SC})) - \Pi_{\text{sno}}(\sigma_{\text{cno}=002}(\text{SC})) \\
+   &\Pi_{\text{sno}}(\sigma_{\text{cno}=001\lor \text{cno}\neq 002}(\text{SC}))
+\end{align*}
+\end{example}
+
+\begin{definition}[连串(Concatenation)]
+$r=(r_1,r_2,...,r_n)$, $s=(s_1,s_2,...,s_m)$, $r$与$s$的连串定义为:
+\begin{align*}
+    \widehat{rs} = (r_1,r_2,...,r_n,s_1,s_2,...,s_m).
+\end{align*}
+\end{definition}
+
+\begin{definition}[笛卡尔积]
+\begin{align*}
+    R\times S=\{\widehat{rs}|r\in R\land s\in S\}.
+\end{align*}
+\begin{itemize}
+    \item $R\times S$的度为$R$和$S$的度之和.
+    \item $R\times S$的元组个数为$R$和$S$的元组个数之积.
+\end{itemize}
+\end{definition}
+
+\subsection{扩展关系代数运算}
+
+\begin{definition}[交运算]
+\begin{align*}
+    R\cap S =\{r|r\in R\land r \in S\}.
+\end{align*}
+$R\cap S = R-(R-S)$.
+\end{definition}
+
+\begin{definition}[$\theta$连接]
+从两个关系的广义笛卡儿积中选取给定属性间满足一定条件的元组:
+\begin{align*}
+    R \underset{{A\theta B}}{\bowtie} S = \{\widehat{rs}|r\in R \land s \in S \land r[A]\theta s[B]\}
+    = \sigma_{r[A]\theta s[B]}(R\times S).
+\end{align*}
+\end{definition}
+
+$A,B$为$R$和$S$上度数相等且可比的属性列, $\theta$为算术比较符.
+
+\begin{definition}[等值连接]
+$\theta$为等号的时候为等值连接.
+\end{definition}
+
+\begin{definition}[自然连接]
+从两个关系的广义笛卡儿积中选取在相同属性列$B$上取值相等的元组, 并去掉重复的列:
+\begin{align*}
+    R \bowtie S = \{ \widehat{rs}[\bar{B}] | r \in R \land s \in S \land r[B]=s[B] \}.
+\end{align*}
+自然连接与等值连接不同: 自然连接中相等的分量必须是相同的属性组, 并且要在结果中去掉重复的属性, 而等值连接则不必.
+\end{definition}
+
+\begin{example}
+求出001号学生所在系的名称:
+\begin{align*}
+    &\Pi_{\text{dname}}(\sigma_{\text{sno}=001}(S\bowtie \text{Dept})) \\
+    &\Pi_{\text{dname}}(\sigma_{\text{sno}=001}(S)\bowtie \text{Dept})
+\end{align*}
+\end{example}

@@ -236,6 +236,23 @@ $r=(r_1,r_2,...,r_n)$, $s=(s_1,s_2,...,s_m)$, $r$与$s$的连串定义为:
 \end{itemize}
 \end{definition}
 
+\begin{example}
+求选修c1课程的学生姓名.
+\end{example}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{./figure/笛卡尔积的使用.pdf}
+    \caption{笛卡尔积的使用}
+\end{figure}
+
+\begin{example}
+求数学成绩比王红同学高的学生姓名.
+\end{example}
+\begin{align*}
+    \Pi_{S.\text{姓名}}\left(\sigma_{R.\text{姓名}=\text{王红}\land R.\text{课程}=\text{数学}\land S.\text{课程}=\text{数学} \land R.\text{成绩} < S.\text{成绩}} (R\times \rho_S(R))\right)
+\end{align*}
+
 \subsection{扩展关系代数运算}
 
 \begin{definition}[交运算]
@@ -244,6 +261,14 @@ $r=(r_1,r_2,...,r_n)$, $s=(s_1,s_2,...,s_m)$, $r$与$s$的连串定义为:
 \end{align*}
 $R\cap S = R-(R-S)$.
 \end{definition}
+
+\begin{example}
+求同时选修了001号和002号课程的学生号.
+\end{example}
+\begin{align*}
+    &\Pi_{\text{sno}}(\sigma_{\text{cno}=001}(\text{SC})) \cap \Pi_{\text{sno}}(\sigma_{\text{cno}=002}(\text{SC})) \\
+    &\Pi_{\text{sno}}(\sigma_{\text{cno}=001\land \text{cno}=002}(\text{SC}))
+\end{align*}
 
 \begin{definition}[$\theta$连接]
 从两个关系的广义笛卡儿积中选取给定属性间满足一定条件的元组:
@@ -254,6 +279,13 @@ $R\cap S = R-(R-S)$.
 \end{definition}
 
 $A,B$为$R$和$S$上度数相等且可比的属性列, $\theta$为算术比较符.
+
+\begin{example}
+求数学成绩比王红同学高的学生姓名.
+\end{example}
+\begin{align*}
+    \Pi_{S.\text{姓名}}\left(\sigma_{\text{课程}=\text{数学}\land \text{姓名}=\text{王红}}(R) \underset{R.\text{成绩}<S.\text{成绩}}{\bowtie}\sigma_{\text{课程}=\text{数学}}\rho_S(R)\right)
+\end{align*}
 
 \begin{definition}[等值连接]
 $\theta$为等号的时候为等值连接.
@@ -274,3 +306,85 @@ $\theta$为等号的时候为等值连接.
     &\Pi_{\text{dname}}(\sigma_{\text{sno}=001}(S)\bowtie \text{Dept})
 \end{align*}
 \end{example}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{./figure/自然连接.pdf}
+    \caption{自然连接例子}
+\end{figure}
+
+\begin{example}
+关系$R(A,B)$, $S(A,C)$, $R$与$S$中元组个数分别为10, 15, 试填写下表.
+\end{example}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+条件 & 表达式 & 最小元组数 & 最大元组数 \\ \hline
+\multirow{2}{*}{无任何条件} & $R \bowtie S$ & 0 & 150 \\ \cline{2-4}
+ & $\Pi_A(R) \cup \Pi_A(S)$ & 1 & 25 \\ \hline
+\multirow{2}{*}{A是R的主码} & $R \bowtie S$ & 0 & 15 \\ \cline{2-4}
+ & $\Pi_A(R) \cup \Pi_A(S)$ & 10 & 25 \\ \hline
+\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}A是R的主码\\ A是S的外码\end{tabular}} & $R \bowtie S$ & 15 & 15 \\ \cline{2-4}
+ & $\Pi_A(R) \cup \Pi_A(S)$ & 10 & 10 \\ \hline
+\end{tabular}
+\caption{不同条件下的表达式及其元组数范围}
+\end{table}
+
+自然连接的问题: \textbf{因失配而发生信息丢失}.
+
+\begin{definition}[外连接]
+为避免自然连接时因失配而发生的信息丢失, 
+可以假定往参与连接的一方表中附加一个取值全为空值的行, 
+它和参与连接的另一方表中的任何一个未匹配上的元组都能匹配, 称之为外连接.
+
+外连接 = 自然连接 + 未匹配元组(悬挂元组).
+
+外连接的形式:
+\begin{enumerate}
+    \item 左外连接 = 自然连接 + 左侧表中未匹配元组. $\leftouterjoin$.
+    \item 右外连接 = 自然连接 + 右侧表中未匹配元组. $\rightouterjoin$.
+    \item 全外连接 = 左外连接 + 右外连接. $\fullouterjoin$.
+\end{enumerate}
+\end{definition}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.85\textwidth]{./figure/左外连接.pdf}
+    \caption{左外连接示意图}
+\end{figure}
+
+外连接结合律不成立的反例:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{./figure/外连接结合律不成立.pdf}
+    \caption{外连接结合律不成立的反例}
+\end{figure}
+
+\begin{definition}[半连接]
+半连接(Semi-join)是一种用于优化查询的操作, 特别是在分布式数据库系统中. 
+它主要用于减少数据传输量, 提高查询效率. 
+半连接操作的目标是从两个关系(表)中返回第一个关系中的那些元组(行), 
+这些元组与第二个关系中的至少一个元组匹配. $\ltimes$.
+
+简单来说, 半连接操作会从一个表(称为外部表或左表)中选择记录, 
+并检查这些记录是否在另一个表(称为内部表或右表)中有对应的记录.
+如果有, 则保留该记录; 如果没有, 则丢弃. 
+但是, 与普通连接不同的是, 结果集只包含来自外部表的列, 而不包含内部表的任何列.
+\end{definition}
+
+半连接可以通过 SQL 查询中的 \verb|EXISTS| 或 \verb|IN| 子查询来实现.
+
+\begin{definition}[反半连接]
+在半连接操作中, 我们会从第一个表(外部表或左表)中选出那些在第二个表(内部表或右表)中有匹配记录的行. 
+而反半连接则恰恰相反, 它的目的是找出那些在第一个表中存在但在第二个表中没有匹配记录的所有行. $\overline{\ltimes}$.
+\end{definition}
+
+在SQL中, 反半连接通常可以通过 \verb|NOT EXISTS| 或者 \verb|LEFT JOIN| 加上 \verb|IS NULL| 的方式来实现.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\textwidth]{./figure/半连接.pdf}
+    \caption{半连接示意图}
+\end{figure}

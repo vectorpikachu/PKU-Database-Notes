@@ -28,6 +28,14 @@
 
 \addbibresource[location=local]{reference.bib} % 参考文献，不要删除
 
+\usepackage{amssymb}
+
+\def\ojoin{\setbox0=\hbox{$\bowtie$}%
+  \rule[-.02ex]{.25em}{.4pt}\llap{\rule[\ht0]{.25em}{.4pt}}}
+\def\leftouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie}}
+\def\rightouterjoin{\mathbin{\bowtie\mkern-5.8mu\ojoin}}
+\def\fullouterjoin{\mathbin{\ojoin\mkern-5.8mu\bowtie\mkern-5.8mu\ojoin}}
+
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, tikzmark, trees, matrix, shapes}
 \usepackage{mathpazo}

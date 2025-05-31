@@ -388,3 +388,56 @@ $\theta$为等号的时候为等值连接.
     \includegraphics[width=.6\textwidth]{./figure/半连接.pdf}
     \caption{半连接示意图}
 \end{figure}
+
+\begin{definition}[外部并]
+外部并操作的目标是在保持这种兼容性的同时合并这些关系. 
+不过, 与内部并(Inner Union)不同, 外部并也会保留那些在其中一个关系中存在但在另一个关系中不存在的属性值.
+\begin{align*}
+    R \cup_{\text{outer}} S
+\end{align*}
+\end{definition}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{./figure/外部并.pdf}
+    \caption{外部并示意图}
+\end{figure}
+
+\begin{definition}[象集(Image Set)]
+    对于关系$R(X,Z)$, $X,Z$是属性组, $x$是$X$上的取值, 定义$x$在$R$中的\textcolor{red}{象集}为:
+\begin{align*}
+    Z_x = \{t[Z] | t\in R \land t[X]=x\}
+\end{align*}
+\end{definition}
+
+\begin{remark}
+    象集实际是是: (1)先从$R$中选出在$X$上取值为$x$的元组; (2)只保留$Z$属性.
+\end{remark}
+
+\begin{example}
+如何求得选修了全部课程的学生?
+\end{example}
+
+思路一: 判断每个学生的课程象集是否包含了整个课程集合.
+\begin{align*}
+    \{u|r\in SC \land u=r[\text{姓名}] \land \text{课程名}_u \supseteq C \}
+\end{align*}
+
+思路二: 判断学生与课程集合构成的笛卡尔积是否完全包含在选课集合中.
+\begin{align*}
+    \{u|r\in SC \land u=r[\text{姓名}] \land \forall c\in C, (u,c)\in SC\}    
+\end{align*}
+
+\begin{definition}[除法]
+除法通常用来找出在第一个关系中与第二个关系中的所有元素都有匹配的那些元组. 它的定义式为:
+\begin{align*}
+    &R(X,Y) \div S(Y) = \{x|r\in R\land x=r[X] \land Y_x \supseteq S\}, \\
+    &R(X,Y) \div S(Y) = \{u|u\in \Pi_X(R) \land \forall v \in S, \widehat{uv} \in R \}.
+\end{align*}
+除法的计算表达式为:
+\begin{align*}
+    R(X,Y) \div S(Y) = \Pi_X(R) - \Pi_X(\Pi_X(R)\times \Pi_Y(S) - R).
+\end{align*}
+\end{definition}
+
+

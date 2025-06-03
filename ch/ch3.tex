@@ -1,5 +1,16 @@
 \chapter{关系模型}
 
+\begin{introduction}[期末考试提纲]
+    \item 笛卡尔积
+    \item 关系模型三要素
+    \item 关系模型的完整性
+    \item 全关系系统的十二条准则
+    \item 关系运算
+    \item 元组演算表达式
+    \item 域关系演算表达式
+    \item 用关系代数表达关系数据操作
+\end{introduction}
+
 \section{关系基本概念}
 
 \begin{definition}[域(Domain)]
@@ -147,7 +158,6 @@ SQL(介于关系代数和关系验算之间, by IBM)、QUEL(基于 Codd 提出�
 \begin{figure}[H]
     \centering
     \includegraphics[width=.6\textwidth]{./figure/关系代数.pdf}
-    \caption{关系代数示意图}
 \end{figure}
 
 \subsection{基本关系代数运算}
@@ -242,7 +252,7 @@ $r=(r_1,r_2,...,r_n)$, $s=(s_1,s_2,...,s_m)$, $r$与$s$的连串定义为:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{./figure/笛卡尔积的使用.pdf}
+    \includegraphics[width=.75\textwidth]{./figure/笛卡尔积的使用.pdf}
     \caption{笛卡尔积的使用}
 \end{figure}
 
@@ -299,6 +309,12 @@ $\theta$为等号的时候为等值连接.
 自然连接与等值连接不同: 自然连接中相等的分量必须是相同的属性组, 并且要在结果中去掉重复的属性, 而等值连接则不必.
 \end{definition}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{./figure/自然连接.pdf}
+    \caption{自然连接例子}
+\end{figure}
+
 \begin{example}
 求出001号学生所在系的名称:
 \begin{align*}
@@ -307,16 +323,9 @@ $\theta$为等号的时候为等值连接.
 \end{align*}
 \end{example}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{./figure/自然连接.pdf}
-    \caption{自然连接例子}
-\end{figure}
-
 \begin{example}
 关系$R(A,B)$, $S(A,C)$, $R$与$S$中元组个数分别为10, 15, 试填写下表.
 \end{example}
-
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|c|c|}
@@ -358,7 +367,7 @@ $\theta$为等号的时候为等值连接.
 外连接结合律不成立的反例:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{./figure/外连接结合律不成立.pdf}
+    \includegraphics[width=.7\textwidth]{./figure/外连接结合律不成立.pdf}
     \caption{外连接结合律不成立的反例}
 \end{figure}
 
@@ -440,4 +449,35 @@ $\theta$为等号的时候为等值连接.
 \end{align*}
 \end{definition}
 
+\begin{example}
+对于$SC(sno,cno,grade)$, 求选修了所有课程的学生.
+\end{example}
+
+\begin{align*}
+    \Pi_{sno,cno}(SC) \div \Pi_{cno}(C)
+\end{align*}
+
+现在对于除运算中的被除关系要正确投影:
+
+也就是我们考虑下面的两个式子:
+\begin{align*}
+    &\Pi_{sno,cno}(SC) \div \Pi_{cno}(C)\\
+    &\Pi_{sno}(SC\div \Pi_{cno}(C))
+\end{align*}
+
+它们对应着下面的图:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{./figure/除法要求.pdf}
+    \caption{对于除运算中的被除关系要正确投影}
+\end{figure}
+
+\subsection{关系代数更新运算}
+
+\begin{definition}[赋值运算]
+为使查询表达简单、清晰, 可以将一个复杂关系代数表达式分成几个部分, 每一部分都赋予一个临时关系变量, 该变量可被看作关系而在后续表达式中使用.
+\begin{align*}
+    \text{临时关系变量} \leftarrow \text{关系代数表达式}
+\end{align*}
+\end{definition}
 

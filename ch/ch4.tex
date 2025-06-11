@@ -1,5 +1,13 @@
 \chapter{SQL}
 
+\begin{introduction}[期末考试提纲]
+  \item 了解数据类型、表的定义
+  \item 掌握各种索引的定义及其作用
+  \item 掌握各种查询表达操作的含义
+  \item 能用SQL表达查询操作
+  \item 表连接、分组聚集、集合、嵌套子查询、null、游标、with定义临时视图
+\end{introduction}
+
 SQL: Structured Query Languang
 
 SQL语言的特点:
@@ -35,7 +43,7 @@ SQL语言的特点:
 
 text2SQL: 建立自然语言与结构化数据之间的关系。
 
-\section{数据模式定义}
+\section{数据定义}
 
 \begin{figure}[H]
   \centering
@@ -55,6 +63,8 @@ text2SQL: 建立自然语言与结构化数据之间的关系。
 SQL Server: 模式把对象和用户分离开来.
 
 对象命名: \verb|<数据库>.<模式>.<表>|.
+
+\subsection{数据模式定义}
 
 创建模式:
 \begin{lstlisting}[language=SQL]
@@ -275,3 +285,533 @@ select a - b from test_int;
 
 严格模式: \verb|set sql_mode = 'traditional'|. 直接报错.
 
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|l|}
+    \hline
+    \textbf{数据类型} & \textbf{描述} & \textbf{unsigned范围} & \textbf{存储字节数} \\ \hline
+    \verb|float|($m$, $d$) & \makecell[l]{单精度浮点数\\ $m$是总位数\\ $d$是小数点后位数} & ... & 4字节 \\ \hline
+    \verb|double|($m$, $d$) & \makecell[l]{双精度浮点数\\ $m$是总位数\\ $d$是小数点后位数} & ... & 8字节 \\ \hline
+    \makecell[l]{\texttt{decimal}($m$, $d$) \\ \texttt{numeric}} & \makecell[l]{精确小数\\ $m$是总位数\\ $d$是小数点后位数} & \makecell[l]{最大位数$m$为65 \\ 最大支持小数为$d$为30} & \\ \hline
+    \verb|float|($n$) & ... & ... & \makecell[l]{$1\leq n \leq 24$是4字节\\ $25\leq n \leq 53$是8字节} \\ \hline
+  \end{tabular}
+  \caption{定点数与浮点数}
+\end{table}
+
+money使用4位小数存储数据, 容易发生小数的舍入错误.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|l|}
+    \hline
+    \textbf{数据类型} & \textbf{范围} & \textbf{描述} & \textbf{存储字节数} \\ \hline
+    \verb|char|($n$) & $0\sim 255$ & 定长字符串 & 4字节 \\ \hline
+    \verb|varchar|($n$) & $0\sim 65,535$ & 变长字符串 & 实际字符串长度 \\ \hline
+    \makecell[l]{\texttt{tinytext} \\ \texttt{text} \\ \texttt{mediumtext}\\ \texttt{longtext}} & \makecell[l]{$0\sim 2^8$\\ $0\sim 2^{16}$\\ $0\sim 2^{24}$ \\ $0\sim 2^{32}$} &  & \\ \hline
+  \end{tabular}
+  \caption{字符型}
+\end{table}
+
+\begin{lstlisting}[language=SQL]
+-- 创建表时指定字符集和校对规则
+CREATE TABLE users (
+  name VARCHAR(100)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- ci 表示不区分大小写
+
+-- 查看服务器字符集
+SHOW VARIABLES LIKE 'character_set%';
+-- 查看数据库字符集
+SHOW CREATE DATABASE mydb;
+-- 查看表字符集
+SHOW CREATE TABLE users;
+\end{lstlisting}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|p{5cm}|l|}
+        \hline
+        \textbf{类型名称} & \textbf{日期格式} & \textbf{日期范围} & \textbf{存储需求} \\ \hline
+        year & YYYY & 1901 $\sim$ 2155 & 1 个字节 \\ \hline
+        time & HH:MM:SS & -838:59:59 $\sim$ 838:59:59 & 3 个字节 \\ \hline
+        date & YYYY-MM-DD & 1000-01-01 $\sim$ 9999-12-31 & 3 个字节 \\ \hline
+        datetime & YYYY-MM-DD HH:MM:SS & 1000-01-01 00:00:00 $\sim$ 9999-12-31 23:59:59 & 8 个字节 \\ \hline
+        timestamp & YYYY-MM-DD HH:MM:SS & 1980-01-01 00:00:01 UTC $\sim$ 2040-01-19 03:14:07 UTC & 4 个字节 \\ \hline
+    \end{tabular}
+    \caption{日期类型及其描述}
+    \label{tab:date_types}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    \textbf{数据类型} & \textbf{描述} \\ \hline
+    \verb|enum('v1', 'v2', ...)| & 只能取一个值 \\ \hline
+    \verb|set('v1', 'v2', ...)| & 可以取多个值 \\ \hline
+  \end{tabular}
+  \caption{枚举型}
+\end{table}
+
+\begin{lstlisting}[language=SQL]
+create table test_enum(
+  a enum('男' ,'女'),
+  b set('1', '2', '3', '4') )
+insert into test_enum values ('男', '2,4')
+\end{lstlisting}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    \textbf{数据类型} & \textbf{大小} \\ \hline
+    \verb|binary(n)| & 255 \\ \hline
+    \verb|varbinary(n)| & 16384 \\ \hline
+    \verb|tinyblob, blob, mediumblob, longblob| & 256, 16K, 16M, 4G \\ \hline
+  \end{tabular}
+  \caption{二进制类型}
+\end{table}
+
+下面是几个关于数据类型的问题:
+\begin{enumerate}
+    \item char 还是 varchar?
+    \begin{table}[H]
+      \centering
+      \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{特性} & \textbf{CHAR} & \textbf{VARCHAR} \\ \hline
+        存储方式 &	固定长度 & 可变长度 \\ \hline
+        存储效率 & 可能浪费空间（固定长度填充空格） &	高效（仅存储实际数据 + 长度信息）\\ \hline
+        检索速度 & 更快（直接定位）& 稍慢（需计算长度） \\ \hline
+        适用场景 & 固定长度数据（如代码、哈希值） &	可变长度数据（如姓名、地址） \\ \hline
+        空格处理 & 自动填充空格（需注意业务逻辑） &	不填充空格 \\ \hline
+      \end{tabular}
+    \end{table}
+    \item 显式数据类型转换: 
+    \begin{lstlisting}[language=SQL]
+cast ( 表达式 as 数据类型 [(数据长度)] )
+convert ( 数据类型 [(数据长度)], 表达式 [, 输出样式] )
+select cast( 123.45 as decimal(10,4) )            -- 输出结果： 123.4500
+select cast( 123.45 as decimal(10,1) )            -- 输出结果： 123.5
+select cast( 12.34567 as money )                  -- 输出结果： 12.3457
+select 'My age is: ' + cast( 28 as char(4) )      -- 输出结果： My age is: 28
+select cast( cast( 123.45 as int ) as char(10) )  -- 输出结果： 123
+select convert( varchar(30), getdate(), 106 )     -- 输出结果： 17 08 2012
+select convert( varchar(30), getdate(), 110 )     -- 输出结果： 08-17-2012
+select cast( 'SQL' as binary(3) )                 -- 输出结果： 0x53514C
+    \end{lstlisting}
+    \item 隐式数据类型转换: 执行\verb|select 1 + '1'|, 结果会是2; 执行\verb|select 1 + 'a'|, 会显示类型转换错误.
+    \item 特殊类型: XML, JSON, Array, 空间数据.
+    \item 用户定义数据类型UDDT(User-defined Datatype).
+    \begin{itemize}
+      \item 标准SQL: \verb|create domain 域名 数据类型|;
+      \item SQL Server: \verb|create type phone_number from varchar(20) not null|.
+      \item Oracle: 
+      \begin{lstlisting}[language=SQL]
+create type animal_ty as OBJECT(
+  breed varchar2(25),
+  name vharchar2(25),
+  birthday date
+)
+      \end{lstlisting}
+    \end{itemize}
+    \item 冗长主码的危害: 占据很大的表空间; 减少索引项, 增加了磁盘I/O数, 减慢索引速度.
+\end{enumerate}
+
+MySQL中的自增字段:
+\begin{lstlisting}[language=SQL]
+create table test_incr(
+  id bigint auto_increment,
+  name char(10)
+)
+\end{lstlisting}
+
+SQL Server中的序列号: identity.
+\begin{lstlisting}[language=SQL]
+create table customer(
+  cust_id smallint identity(100, 20) not null,
+  -- identity 有一个起始数和增量值
+  cust_name varchar(50) not null
+)
+\end{lstlisting}
+
+SQL Server中的序列号: sequence.
+\begin{lstlisting}[language=SQL]
+create sequence mySeq as int start with 1 increment by 1
+insert into myTb(id, Name) values (next value for mySeq, 'Tom')
+insert into myTb(id, Name) values (next value for mySeq, 'jerry')
+\end{lstlisting}
+
+uniqueidentifier 产生跨数据库和服务器的全局唯一标识符(GUID), newid()函数产生uniqueidentifier 类型的值, newsequentialid()产生的GUID总是大于先前通过该函数生成的GUID.
+
+如果表中有一列被声明为rowversion, 只要行被修改, 其rowversion
+列就会发生改变. 它是跨表唯一的, 任何表的修改都会使该值递增.
+
+\subsection{索引}
+
+\begin{definition}[索引]
+  索引是数据库管理系统中用于加速数据检索的核心工具. 
+  它通过创建特定数据结构(如B树、哈希表等), 
+  将数据表中的某些列的值与对应的物理存储位置关联起来, 从而大幅提升查询效率.
+\end{definition}
+
+索引的作用:
+\begin{itemize}
+  \item 加速查询;
+  \item 支持排序和分组;
+  \item 保证唯一性;
+  \item 优化连接操作.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+create [unique] index 索引名
+  [using { btree | hash }]
+on 表名 (列名 [asc/desc] [, 列名asc/desc] ...)
+
+drop index 索引名
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=.8\textwidth]{figure/聚簇索引.pdf}
+  \caption{聚簇索引}
+  \label{fig:cluster}
+\end{figure}
+
+\begin{definition}[索引碎片]
+  索引碎片: 页面逻辑顺序与物理顺序不一致.
+\end{definition}
+
+\textbf{下面是若干实现索引的方法:}
+\begin{itemize}
+  \item 聚簇索引(cluster): 表中元组按索引项的值排序并物理地聚簇在一起. \textcolor{red}{聚簇索引使得逻辑访问顺序和物理存储顺序尽可能一致.} 如图\ref{fig:cluster}.
+  \item 组合索引: 建立在多个属性列上的索引. 
+  
+  索引 (A, B, C) 的B+树会先按 A 排序, 再在 A 相同的情况下按 B 排序, 最后在 B 相同的情况下按 C 排序.
+
+  必须满足\textbf{最左前缀原则}: 即查询条件必须从索引的最左列开始连续匹配.
+
+  假如我们针对索引(user\_id, name) 的查询:
+  \begin{lstlisting}[language=SQL]
+SELECT user_id, name FROM users WHERE user_id = 100;
+  \end{lstlisting}
+  那么可以\textit{直接从索引获取数据, 无需访问表数据.}
+
+  但是查询\verb|SELECT * FROM users WHERE user_id = 100;|需\textbf{回表}查询所有列.
+\end{itemize}
+
+\textbf{下面是描述索引的性质:}
+\begin{itemize}
+  \item 覆盖索引: 覆盖索引的核心是“索引覆盖查询需求”. 当查询的字段全部被索引包含时, 数据库可以直接从索引中获取结果, 而不需要回表查询数据行.
+  \begin{lstlisting}[language=SQL]
+create index my_idx on R(A) include B
+  \end{lstlisting}
+  换言之, 这是在描述一个索引\verb|my_idx|会覆盖对B的查询!
+  \item 过滤索引: 在索引的定义中加入where语句, 索引中只包括那些满足过滤条件的列值.
+  \begin{lstlisting}[language=SQL]
+create index filter_idx1 on R(A) where A is not null
+  \end{lstlisting}
+  应用: 比如大部分男而少部分女, 可只对女做索引. 这些是低频值, 不用每次都会更新索引结构.
+  \item 函数索引: 
+  \begin{lstlisting}[language=SQL]
+select * from student where UPPER(name) = 'TOM'
+create index idx2 on student(UPPER(name))
+-- 由于建立了一个针对 UPPER(name) 的索引, 会就是把 UPPER(name) 来查
+  \end{lstlisting}
+\end{itemize}
+
+\textbf{索引的使用说明:}
+\begin{itemize}
+  \item 一个表上可建多个索引;
+  \item 可以动态地定义索引;
+  \item 随时建立和删除索引;
+  \item 索引可以提高\textcolor{red}{查询效率};
+  \item 耗费空间;
+  \item 降低插入、删除、更新效率.
+\end{itemize}
+
+\begin{definition}[索引选择度]
+  索引选择度 = 1 / 索引列的唯一值个数.\footnote{这里老师的定义有点怪. 根据\hyperlink{https://www.red-gate.com/simple-talk/databases/sql-server/performance-sql-server/14-sql-server-indexing-questions-you-were-too-shy-to-ask/}{14 SQL Server Indexing Questions You Were Too Shy To Ask}: The ratio of unique values within a key column is referred to as index selectivity. The more unique the values, the higher the selectivity, which means that a unique index has the highest possible selectivity. The query engine loves highly selective key columns, especially if those columns are referenced in the WHERE clause of your frequently run queries. The higher the selectivity, the faster the query engine can reduce the size of the result set. The flipside, of course, is that a column with relatively few unique values is seldom a good candidate to be indexed.
+  
+  这里的定义是: NUM\_DISTINCT / NUM\_ROWS. 在这种情况下, 选择度高的更好.}
+
+  在这种情况下, 应该选择索引选择度低的建立索引.
+\end{definition}
+
+\begin{definition}[索引过滤性]
+  索引过滤性=查询结果行数/总行数.
+
+  现在我们假设每个都分布均匀, 比如基数为NUM\_DISTINCT, 每个里面的记录=个数都一样.
+  \begin{itemize}
+    \item "="的索引过滤性为 1/NUM\_DISTINCT.
+    \item "$\neq$"的索引过滤性为 (NUM\_DISTINCT-1)/NUM\_DISTINCT.
+    \item "$\geq$"的索引过滤性为 更大的/NUM\_DISTINCT.
+  \end{itemize}
+\end{definition}
+
+\begin{example}
+  我们假设SC分布在10个页中, 平均每个学生选修3门课, 每门课程有3个学生选.
+
+  有下面的三个操作:
+  \begin{itemize}
+    \item Q1: 查询某个学生所修的课程 (with probability $p_1$);
+    \item Q2: 查询选修某门课程的学生 (with probability $p_2$);
+    \item I: 插入选课元组 (with probability $1-p_1-p_2$).
+  \end{itemize}
+  求问: 当前最好应该使用怎样的索引?
+\end{example}
+
+\textit{ 解答. }
+\begin{table}[ht]
+\centering
+\begin{tabular}{lcccc}
+\hline
+操作 & 无索引 & sno 索引 & cno 索引 & 全索引 \\
+\hline
+Q1 & 10 & 4 & 10 & 4 \\
+Q2 & 10 & 10 & 4 & 4 \\
+I & 2 & 4 & 4 & 6 \\
+\hline
+代价 & $2 + 8p_1 + 8p_2$ & $4 + 6p_2$ & $4 + 6p_1$ & $6 - 2p_1 - 2p_2$ \\
+代价最小时概率分布 & $p_1 = p_2 = 0.1$ & $p_1 = 0.5, p_2 = 0.1$ & $p_1 = 0.1, p_2 = 0.5$ & $p_1 = p_2 = 0.4$ \\
+\hline
+\end{tabular}
+\caption{不同索引下的操作代价与最优概率分布}
+\end{table}
+
+为什么是4? 因为访问索引一次+返回的三个元组3次.
+
+\subsection{视图定义}
+
+\begin{definition}[视图]
+  视图是命名的、从基本表中导出的虚表, 它在物理上并不存在, 存在的只是其定义, 属于外模式.
+
+  视图中的数据是从基本表中导出的, 每次对视图查询都要重新计算.
+
+  视图之上可以再定义视图.
+\end{definition}
+
+\begin{lstlisting}[language=SQL]
+create view view_name[(列名[，列名] ...)]
+  as （查询表达式）
+[with check option]
+
+drop view view_name
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+create view computer_teacher
+as
+  ( select tno, tname, salary
+    from department, teacher
+    where department.tno = teacher.tno
+    and dname = '计算机系')
+
+select  tname
+from    computer_teacher
+where   salary > 1000
+\end{lstlisting}
+
+视图的优点:
+\begin{itemize}
+  \item 使不同用户可以从不同角度观察同一数据;
+  \item 逻辑独立性: 视图作为基本表与外模式之间的映象;
+  \item 安全性: 限制用户数据的访问范围;
+\end{itemize}
+
+\begin{theorem}[不可更新的视图: 不含基表主码]
+  视图定义中不包括基表主码时, 视图不可更新.
+\end{theorem}
+
+\begin{proof}
+  设当前的视图定义为$V(A_1,A_2,...,A_m)$, 这其中不含基表$R$的主键$P$. 那么当我们视图对视图更新时, 这个更新操作会变成对基表的更新. 唯一的问题在于: 主键$P$自动的被填充为null, 而这种插入操作显然是不合法的, 因而此时视图不可更新.
+\end{proof}
+
+\begin{theorem}[不可更新的视图: 包含聚集函数]
+  视图定义中包含聚集函数时, 视图不可更新.
+\end{theorem}
+
+\begin{proof}
+  原因在于: 对于聚集值的更新无法回逆到基表上.
+\end{proof}
+
+\begin{theorem}[不可更新的视图: 不含连接属性]
+  视图定义中没有包括连接属性时, 视图不可更新.
+\end{theorem}
+
+\begin{lstlisting}[language=SQL]
+create table RT (A int , B int);
+create table ST (B int , C int);
+insert into RT values (1,2),(2,3);
+insert into ST values (1,2),(2,3);
+
+create view joinV as
+(select A, C
+ from RT, ST
+ where RT.B = ST.B)
+\end{lstlisting}
+
+现在试图: \verb|insert into joinV values (3, 3)|.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{figure/不合法的视图更新.pdf}
+    \caption{不可更新的视图: 不含连接属性}
+\end{figure}
+
+不可更新视图还包括:
+\begin{itemize}
+  \item select子句中的目标列包含了聚集函数;
+  \item select子句中使用unique或distinct关键字;
+  \item select子句中包含经算术表达式计算出来的列;
+  \item from子句中包含了多个表;
+  \item 包含了group by子句.
+\end{itemize}
+
+这些都是因为违反了\textbf{全关系系统准则 6: 视图更新准则}. 要存在一个算法可以无二
+义地把更新要求转换为对基本表的更新序列.
+
+\subsection{临时表和内存表}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+ & 临时表 & 内存表 \\
+\hline
+存储 & 表结构和数据都存储在内存中 & 表结构存储在磁盘中，表数据存储在内存中 \\
+\hline
+会话 & 单个会话独享 & 多个会话共享 \\
+\hline
+断开连接 & 表结构和表数据都没了 & 表结构和表数据都存在 \\
+\hline
+服务重启 & 表结构和表数据都没了 & 表结构存在，表数据不存在 \\
+\hline
+\end{tabular}
+\caption{临时表与内存表的比较}
+\end{table}
+
+\subsection{公用表表达式CTE}
+
+\begin{lstlisting}[language=SQL]
+with S-total (sno, value) as
+      select sno, sum (grade)
+      from SC
+      group by sno
+    S-total-avg(value) as
+      select avg (value)
+      from S-total
+select sno
+from S-total, S-total-avg
+where S-total.value >= S-total-avg.value
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+values row(1,2,3), row(10,9,8)
+union all
+values row(-1,-2,0),row(10,29,30),row(100,20,-9)
+\end{lstlisting}
+
+\subsection{分区表}
+
+\begin{definition}[分区表]
+  把逻辑上统一的数据分割成较小的、可以独立管理的物理单元(分片)进行存储.
+\end{definition}
+
+分区表的优点:
+\begin{itemize}
+  \item 增强可用性;
+  \item 维护方便;
+  \item 均衡I/O;
+  \item 改善查询性能.
+\end{itemize}
+
+一般的分区方式:
+\begin{itemize}
+  \item 范围分区: 根据某个属性值的范围进行分区;
+  \item 散列分区: 通过分区编号将数据均匀散列到I/O设备上, 使得这些分区大小一致;
+  \item 复合分区: 先使用范围分区; 再在每个分区内使用散列分区.
+\end{itemize}
+
+\section{数据查询}
+
+开门见山: 数据查询只需要会下面的语法即可.
+\begin{lstlisting}[language=SQL]
+Select     <目标列>
+From       <数据源表>
+Where      <行过滤>
+Group by   <分组>
+Having     <分组过滤>
+Union      <合并>
+Order by   <输出排序>
+Limit      <输出行数>
+\end{lstlisting}
+
+数据查询必须要经过: 笛卡尔积 $\to$ 选择 $\to$ 投影.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{figure/数据查询.pdf}
+    \caption{SQL查询基本结构}
+\end{figure}
+
+\begin{example}
+  找出选修课程的学生姓名、课程名、成绩.
+\end{example}
+
+\textit{ 解答. }最基础的解是:
+\begin{align*}
+    \Pi_{sname,cname,grade} (S \bowtie SC \bowtie C).
+\end{align*}
+可以写成上面的三步走的形式, 如下图:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/查询例题1.pdf}
+    \caption{数据查询三步走}
+\end{figure}
+
+\begin{example}
+  写出与\textcolor{red}{$R(A,B) \bowtie S(B,C)$}等价的SQL.
+\end{example}
+
+\textit{ 解答. }
+\begin{lstlisting}[language=SQL]
+Select  A, R.B, C
+From    R, S
+Where   R.B = S.B
+\end{lstlisting}
+
+\begin{example}
+  寻找每个学生在哪个系.
+\end{example}
+
+\textit{ 解答. }
+\begin{lstlisting}[language=SQL]
+Select     sname, dname
+From       student, department
+Where      dname = '计算机系'
+      and  student.dno = department.dno
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL]
+-- 给出所有学生的所有信息
+select *
+from student
+
+-- 给出所有学生的姓名及出生日期
+select sname, 2025-age
+from student
+
+-- 给出每个老师信息的自然语言描述
+select  tname + '老师的工资是' + salary
+        + ',年龄是' + age
+        + ',职称是' + title
+from teacher
+
+-- 列出成绩在60~80之间的学生学号
+-- 优化小窍门: 使用 between 合并两个比较谓词
+select sno
+from SC
+where grade between 60 and 80
+\end{lstlisting}

@@ -815,3 +815,778 @@ select sno
 from SC
 where grade between 60 and 80
 \end{lstlisting}
+
+!!!注意, SQL缺省为保留重复值, 也可以用关键字 \textcolor{red}{\texttt{all}} 显式指明; 若要去掉重复行, 可以用关键字 \textcolor{red}{\texttt{distinct}} 指明.
+\begin{align*}
+    \Pi_A(R) = \texttt{select distinct }A\texttt{ from }R
+\end{align*}
+
+优化小窍门: 只在必要时使用 \textcolor{red}{\texttt{distinct}}.
+
+输出顺序: \texttt{order by 列名 [asc | desc]}.
+\begin{lstlisting}[language=SQL]
+select *
+from student
+order by age asc, sname desc
+-- 按照年龄升序输出学生信息, 相同年龄按照姓名降序
+
+select tname, salary*2
+from teacher
+order by 2
+-- 按照 输出列 的编号排序
+
+select sname
+from student
+order by age
+-- 排序列可以不是 输出列
+\end{lstlisting}
+
+更名运算: 可以出现在 \verb|select| 和 \verb|from| 子句中. \verb|old_name (as) new_name|.
+
+\begin{lstlisting}[language=SQL]
+select  sname '姓名',
+        sex '性别',
+        2025 - age '出生日期'
+from student
+order by 出生日期
+-- 或者 order by 3
+
+select S2.sno
+from SC as S1, SC as S2
+where S1.sno = 's1'
+  and S1.cno = 'c1'
+  and S2.cno = 'c1'
+  and S1.grade < S2.grade
+-- 找出比 s1 学生选修 c1 课程成绩高的学生号
+\end{lstlisting}
+
+\subsection{空值}
+
+数据库中允许取null, 就变成了三值逻辑. true, false, unknown.
+\begin{itemize}
+  \item A-Mark null: 表示“未知的”. 值存在, 只是当前没有获得该信息.
+  \item T-Mark null: 表示“不适用”.
+\end{itemize}
+
+\textcolor{red}{全关系系统准则 3: 空值的系统化处理. 全关系型DBMS应支持空值概念, 并用系统化的方式处理空值.}
+
+注意: 运算中牵扯到了null, 结果都是null, 例如: \verb|null <> null| 结果为null.
+
+注意: 空值测试. \verb|is [not] null|.
+\begin{itemize}
+  \item 除 \verb|is [not] null| 之外, 空值不满足任何查找条件.
+  \item 如果null参与算术运算, 则该算术表达式的值为null.
+  \item 如果null参与比较运算, 则结果可视为unknown.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+select sno
+from SC
+where grade is null
+-- 不要写成 where grade = null
+\end{lstlisting}
+
+MySQL中的空值处理函数:
+\begin{itemize}
+  \item \verb|isnull(expr)|: 如果 \verb|expr| 值为空, 返回1, 否则为0;
+  \item \verb|ifnull(check_expr, replace_value)|: 如果 \verb|check_expr| 值为空, 返回\verb|replace_value|; 否则返回 \verb|check_expr|.
+  \item \verb|nullif(expr1, expr2)|: 如果两个表达式相等则返回空值, 否则返回第一个表达式.
+  \item \verb|coalesce(expr1, expr2, ... )|: 返回第一个不为null的\verb|expr|.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL]
+select sno, cno, ifnull (grade, 0)
+from SC
+
+select sno, cno, coalesce (grade, 0)
+from SC
+where coalesce (grade, 0) < 60
+\end{lstlisting}
+
+当指定 \verb|order by| 的时候, \verb|asc| 首先输出空值, \verb|desc| 最后输出空值.
+
+如果要求首先输出空值, 然后由大到小输出非空值怎么办?
+\begin{lstlisting}[language=SQL]
+select  id, val,
+        1 - isnull(val) as is_null
+from order_null
+order by is_null, val desc
+\end{lstlisting}
+
+\subsection{连接运算}
+
+连接类型:
+\begin{itemize}
+  \item \verb|inner join|.
+  \item \verb|left out join|.
+  \item \verb|right out join|.
+  \item \verb|full out join|.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL, caption={不用外连接表达查询的例子}]
+-- 列出所有老师的教工号、姓名、工资、所教课程号
+select tno, tname, salary, cno
+from teacher, TC
+where teacher.tno = TC.tno
+unoinselect tno, tname, salary, null
+from teacher
+where tno not in (select tno from TC)
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL, caption={用外连接表达查询的例子}]
+-- 列出所有老师的教工号、姓名、工资、所教课程号
+select tno, tname, salary, cno
+from teacher left join TC
+      on teacher.tno = TC.tno
+\end{lstlisting}
+
+inner join: 只保留符合连接条件的元组.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.55\textwidth]{figure/inner_join.pdf}
+    \caption{inner join示例}
+\end{figure}
+
+left join: 对于失配部分, 保留左边信息+null.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.55\textwidth]{figure/left_join.pdf}
+    \caption{left join示例}
+\end{figure}
+
+right join: 对于失配部分, 保留右边信息+(左边)null.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.55\textwidth]{figure/right_join.pdf}
+    \caption{right join示例}
+\end{figure}
+
+left join excluding inner join: 保留左边表中和右边失配的部分.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.55\textwidth]{figure/left_join_ex_inner_join.pdf}
+    \caption{left join excluding inner join}
+\end{figure}
+
+full join excluding inner join: 分别保留两边失配的部分.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.55\textwidth]{figure/full_join_ex.pdf}
+    \caption{full join excluding inner join}
+\end{figure}
+
+cross join: \verb|(R cross join S) as T|: 两个关系的笛卡尔积.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{figure/cross_join.pdf}
+    \caption{cross join}
+\end{figure}
+
+natural join: 匹配相同部分.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{figure/natural_join.pdf}
+    \caption{natural join}
+\end{figure}
+
+在某些数据库(如 MySQL)中, \verb|JOIN| 关键字默认等价于 \verb|INNER JOIN|, 但其他数据库(如 PostgreSQL)可能需要显式写 \verb|INNER JOIN|.
+
+straight join:
+默认情况下, MySQL 优化器会根据统计信息(如表大小、索引使用情况等)决定连接顺序. 
+但在某些情况下, 优化器的选择可能不是最优的. 
+此时, \verb|STRAIGHT_JOIN| 可以手动指定连接顺序, 确保左侧表作为驱动表.
+
+\begin{lstlisting}[language=SQL, caption={多表连接}]
+select *
+from tbA A  inner join tbA B on A.b=B.b
+            inner join tbA C on A.b=C.b
+
+select *
+from tbA A  join (tbA B, tbA C)
+            on (A.b=B.b and A.b=C.b)
+\end{lstlisting}
+
+cross apply与outer apply: 提取左表中的每一行, 与右表中的所有行进行匹配.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{figure/cross_apply.pdf}
+    \caption{cross apply示例}
+\end{figure}
+
+\subsection{集合运算}
+
+\begin{itemize}
+  \item 集合并: \verb|union (all)|
+  \item 集合交: \verb|intersect (all)|
+  \item 集合差: \verb|except (all)|
+  \item 集合操作缺省去除重复元组
+  \item \verb|intersect| 的优先级高于其他集合操作的优先级
+  \item 加上 \verb|all| 表示当成 multi-set 来操作.
+\end{itemize}
+
+求工资大于1000或者年龄大于60的教工:
+\begin{lstlisting}[language=SQL, caption={集合操作表达查询的例子}]
+-- 查询 1
+select tno
+from teacher
+where salary > 1000
+union all
+select tno
+from teacher
+where age > 60
+
+-- 查询 2
+select tno
+from teacher
+where salary > 1000
+   or age > 60
+\end{lstlisting}
+
+上面的查询 1和查询 2等价, 但是查询 2的效率更高.
+
+\begin{lstlisting}[language=SQL, caption={求出选修所有课程的同学}]
+SELECT sno
+FROM student S1
+WHERE
+  (
+    -- 所有课程
+    SELECT cno
+    FROM C
+    EXCEPT
+    -- 除去学生选的课程
+    SELECT cno
+    FROM SC
+    WHERE S1.sno = SC.sno
+  ) IS NULL;
+  -- 剩下的课程为 NULL
+\end{lstlisting}
+
+\subsection{聚集函数(Group function)}
+
+\begin{itemize}
+  \item 平均值: \verb|avg|
+  \item 最小值: \verb|min|
+  \item 最大值: \verb|max|
+  \item 总和: \verb|sum|
+  \item 记数: \verb|count|
+\end{itemize}
+
+\begin{lstlisting}[language=SQL, caption={聚集函数最容易犯的语法错误}]
+select sno
+from SC
+where grade = max(grade)
+-- Error Code: 1111. Invalid use of group function
+
+-- 正确的使用方法
+select sno
+from SC
+where grade = (select max(grade) from SC)
+\end{lstlisting}
+
+聚集函数处理null: \textcolor{red}{除了 \texttt{count} 之外忽略null.}
+
+统计型聚集函数: \verb|std|, \verb|stddev|, \verb|stddev_pop|, \verb|stddev_samp|,
+\verb|variance|, \verb|var_pop|, \verb|var_samp|.
+
+\subsection{分组运算}
+
+\verb|group by| 将表中行按指定列上值相等的原则分组, 然后在每一分组上使用聚集函数, 得到单一值.
+
+\verb|having| 对分组进行选择, 只将聚集函数作用到满足条件的分组上.
+
+\begin{lstlisting}[language=SQL]
+-- 每门课程 所有同学的平均成绩
+select avg(grade)
+from SC
+
+-- 特定同学的平均成绩
+select avg(grade)
+from SC
+where sno = 's1'
+
+-- 列出每个学生的最高、最低、平均成绩
+select  sno,
+        max(grade),
+        min(grade),
+        avg(grade)
+from SC
+group by sno
+\end{lstlisting}
+
+分组查询中各子句的顺序: where $\to$ group by $\to$ having.
+\begin{lstlisting}[language=SQL]
+-- 所有课程都及格了的同学的平均成绩
+select sno, avg(grade)
+from SC
+group by sno
+having min(grade) >= 60
+
+-- 所有同学的及格了的课程的平均成绩
+select sno, avg(grade)
+from SC
+where grade >=60
+group by sno
+
+-- 列出每一年龄组中男学生（超过50人） 的人数
+select age, count(sno)
+from student
+where sex = 'M'
+group by age
+having count(*) > 50
+\end{lstlisting}
+
+\hyperlink{https://leetcode.cn/problems/sum-of-unique-elements/description/}{Leetcode 1748. 唯一元素的和}: \textit{给你一个整数数组 \texttt{nums}。数组中唯一元素是那些只出现恰好一次的元素。
+请你返回 \texttt{nums} 中唯一元素的和。}
+
+我们把原来的 \verb|nums| 数组放在表 \verb|numTb| 的 \verb|nums| 列之中.
+\begin{lstlisting}[language=SQL]
+select sum(nums)
+from
+  (select nums
+   from numTb
+   group by nums -- 按照 nums 的数值分组
+   -- 如果组内只有一个, 说明是唯一元素
+   having count(*)=1 ) tmpT
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=SQL]
+group_concat 列名
+  [order by 排序列]
+  [separator 分隔符]
+
+insert into ds value  ('cs', 'bob'),
+                      ('cs', 'tom'),
+                      ('maths', 'mary'),
+                      ('maths', 'lisa'),
+                      ('maths', null);
+
+select  dname,
+        group_concat(sname)
+from ds
+group by dname
+
+select  dname,
+        group_concat(name order by sname)
+from ds
+group by dname
+
+select  dname,
+        group_concat(name order by separator ' | ')
+from ds
+group by dname
+\end{lstlisting}
+
+注意: $n$个属性的所有 \verb|group by|, 共有$2^n$个.
+
+\textbf{Cube}: 其实是这样的, 假设我们$\texttt{group by }A_1,A_2,...,A_m$. 同时我们设每个属性上的Distinct的取值集合为$D_i(1\leq i\leq m)$.
+
+那么, \verb|with cube| 会让每个属性在$\{\texttt{NULL}\}\cup D_i$上变化. 这样总共就是有:
+\begin{align*}
+    \prod_{i=1}^m (|D_i|+1).
+\end{align*}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\textwidth]{figure/with_cube.pdf}
+    \caption{Cube示例}
+\end{figure}
+
+\begin{lstlisting}[language=SQL]
+select Model, Year, Color, sum(Sales)
+from car_sales
+group by Model, Year, Color with cube
+\end{lstlisting}
+
+\textbf{Rollup}: 按照维度顺序统计. 例如$\texttt{group by }A_1,A_2,...,A_m$, 先不分组统计, 再按照$A_1$分组统计, 再按照$A_1,A_2$分组统计, ..., 最后按照分组$A_1,A_2,...,A_m$统计.
+
+同时我们设每个属性上的Distinct的取值集合为$D_i(1\leq i\leq m)$.
+那么Rollup产生的行数为:
+\begin{align*}
+    |D_1| + |D_1|\times |D_2| + |D_1|\times |D_2| \times |D_3| + \cdots + \prod_{i=1}^m |D_i| = \sum_{k=1}^m \prod_{i=1}^k |D_i|.
+\end{align*}
+
+只有 \verb|count(*)| 会把 null计入, 其他(包括 \verb|count(B)| 这样的)都不会计入.
+
+group by将多个null行视为同一个分组.
+
+\textbf{Grouping}: grouping是一个聚合函数, 它产生一个附加的列, 当用cube或rollup运算符添加行时, 附加
+列的输出值为1, 否则为0.
+
+\begin{lstlisting}[language=SQL]
+select  if (grouping(A)=1, '汇总', '原始') grpA, A,
+        if (grouping(B)=1, '汇总', '原始') grpB, B,
+        count(*)
+from group_null
+group by A, B with rollup
+\end{lstlisting}
+
+对于grouping(A, B, C), 
+\begin{itemize}
+  \item 分组(A, B, C)的标识为4*0+2*0+1*0=0
+  \item 分组(A, B)的标识为4*0+2*0+1*1=1
+  \item 分组(A)的标识为4*0+2*1+1*1=3
+  \item 分组()的标识为4*1+2*1+1*1=7
+\end{itemize}
+
+\textbf{Grouping sets}:
+\begin{lstlisting}[language=SQL]
+group by grouping sets
+( (分组属性集1), (分组属性集2), ...(分组属性集n) )
+
+select model, car_year, color, sum(sales)
+from car_sales
+group by grouping sets (
+  (model, theyear),
+  (model, color),
+  (theyear, color),
+  () )
+\end{lstlisting}
+
+\begin{align*}
+&\texttt{cube}(a, b) = \texttt{grouping sets}((a, b), (a), (b), ()) \\
+&\texttt{rollup}(x, y, z) = \texttt{grouping sets}((x, y, z), (x, y), (x), ()) \\
+&\texttt{group by cube}(a, b), \texttt{rollup}(x, y, z) \\
+&= \texttt{group by } \texttt{grouping sets}((a, b), (a), (b), ()), \texttt{grouping sets}((x, y, z), (x, y), (x), ()) \\
+&= \texttt{group by grouping sets}((a, b, x, y, z), (a, b, x, y), (a, b, x), (a, b), \\
+&\quad (a, x, y, z), (a, x, y), (a, x), (a), \\
+&\quad (b, x, y, z), (b, x, y), (b, x), (b), \\
+&\quad (x, y, z), (x, y), (x), ())
+\end{align*}
+
+\subsection{嵌套子查询}
+
+\textbf{in子查询}. \verb|[not] in (子查询)|.
+
+\begin{lstlisting}[language=SQL]
+SELECT sname
+FROM student S, SC
+WHERE S.sno = SC.sno
+  AND cno = 'c1';
+
+SELECT sname
+FROM student S
+WHERE sno IN (
+    SELECT sno
+    FROM SC
+    WHERE cno = 'c1'
+);
+
+-- 一般来说, 第 1 个查询更有效
+\end{lstlisting}
+
+\textbf{some/all子查询}:
+\begin{itemize}
+  \item 表达式 比较运算符$\theta$ some (子查询): 表达式的值至少与子查询结果中的一个值相比满足比较运算符$\theta$;
+  \item 表达式 比较运算符$\theta$ all (子查询): 表达式的值与子查询结果中的所有的值相比都满足比较运算符$\theta$;
+  \item =some就等价于in; $\neq$all就等价于not in.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL, caption={找出平均成绩最高的学生号}]
+select sno
+from SC
+group by sno
+having avg(grade) >= all
+        (select avg(grade)
+        from SC
+        group by sno)
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL, caption={找出每个系平均成绩最高的学生}]
+select dno, S.sno
+from student S, SC
+where S.sno = SC.sno
+group by dno, S.sno
+having avg(grade) >= all
+        (select avg(grade)
+        from student X, SC
+        where X.sno = SC.sno
+        and X.dno = S.dno
+        group by sno)
+\end{lstlisting}
+
+\textbf{exists子查询}: [not] exists (子查询). 判断子查询的结果集合中是否有任何元组存在.
+
+\begin{itemize}
+  \item in后的子查询与外层查询无关, 每个子查询执行一次, 称其为无关子查询.
+  \item exists后的子查询与外层查询有关, 需要执行多次, 称之为相关子查询.
+\end{itemize}
+
+\begin{lstlisting}[language=SQL, caption={列出选修了c1号课程的学生姓名}]
+select sname
+from student S
+where exists
+      (select *
+      from SC
+      where cno = c1
+      and sno = S.sno)
+\end{lstlisting}
+
+\begin{lstlisting}[language=SQL, caption={列出选修了c1号和c2号课程的学生的学号}]
+select sno
+from SC SC1
+where SC1.cno = c1
+  and exists
+      (select sno
+      from SC
+      where cno = c2
+      and sno = SC1.sno)
+\end{lstlisting}
+
+反半连接: not in, not exists.
+
+列出没有选修课程的学生的姓名:
+\begin{align*}
+    \Pi_{sno}(S)-\Pi_{sno}(SC).
+\end{align*}
+
+\begin{lstlisting}[language=SQL]
+select sname
+from student
+where sno not in
+      (select sno
+      from SC)
+
+select sname
+from student S
+where not exists
+      (select sno
+      from SC
+      where sno=S.sno)
+\end{lstlisting}
+
+ps. 这里后面介绍了除法 和 not exists ... not exists 的关系.
+
+\subsection{字符串与文本操作}
+
+LIKE 操作符:
+\begin{lstlisting}[language=SQL]
+SELECT * FROM table_name 
+WHERE column_name LIKE pattern;
+-- 查找以 "A" 开头的所有名字
+SELECT * FROM users WHERE name LIKE 'A%';
+
+-- 查找第二个字符是 "o" 的三字名字
+SELECT * FROM users WHERE name LIKE '_o_';
+
+-- 查找包含 "cat" 的名字
+SELECT * FROM users WHERE name LIKE '%cat%';
+\end{lstlisting}
+
+
+REGEXP:
+\begin{lstlisting}[language=SQL]
+SELECT * FROM table_name 
+WHERE column_name REGEXP pattern;
+
+-- 查找以 "A" 开头且以 "e" 结尾的名字
+SELECT * FROM users WHERE name REGEXP '^A.*e$';
+
+-- 查找包含连续三个数字的名字
+SELECT * FROM users WHERE name REGEXP '[0-9]{3}';
+
+-- 查找格式为 "XXX-XXX-XXXX" 的电话号码
+SELECT * FROM contacts WHERE phone REGEXP '^[0-9]{3}-[0-9]{3}-[0-9]{4}$';
+\end{lstlisting}
+
+\section{数据更新}
+
+\begin{remark}
+  期末考试不考!!!
+\end{remark}
+
+INSERT、DELETE、TRUNCATE、UPDATE、OUTPUT、MERGE.
+
+\begin{lstlisting}[language=SQL]
+-- 插入单条记录
+INSERT INTO employees (name, age, department) 
+VALUES ('John Doe', 28, 'Engineering');
+
+-- 批量插入
+INSERT INTO students (class_id, name, gender, score) 
+VALUES 
+  (1, '大宝', 'M', 87),
+  (2, '二宝', 'M', 81);
+
+-- 删除特定记录
+DELETE FROM employees WHERE employee_id = 100;
+
+-- 删除所有记录（危险操作！）
+DELETE FROM employees;
+
+TRUNCATE TABLE logs; -- 清空 logs 表的所有数据
+
+-- 更新单列
+UPDATE employees 
+SET department = 'Senior Engineering' 
+WHERE age > 30;
+
+-- 更新多列
+UPDATE customers 
+SET cust_contact = 'Sam Roberts', cust_email = 'sam@toyland.com'
+WHERE cust_id = '1000000006';
+
+-- 删除记录并返回被删除的数据
+DELETE FROM orders 
+OUTPUT DELETED.order_id, DELETED.customer_id
+WHERE order_date < '2023-01-01';
+
+-- 合并订单数据：匹配则更新，否则插入
+MERGE INTO orders AS target
+USING (SELECT * FROM temp_orders) AS source
+ON target.order_id = source.order_id
+WHEN MATCHED THEN 
+  UPDATE SET target.amount = source.amount
+WHEN NOT MATCHED THEN 
+  INSERT (order_id, amount) VALUES (source.order_id, source.amount);
+\end{lstlisting}
+
+\section{服务器端脚本语言}
+
+\textcolor{red}{主要掌握游标和触发器的定义和使用!!!}
+
+\subsection{SQL脚本语法成分}
+
+\begin{enumerate}
+    \item 局部变量: 使用 \verb|DECLARE| 声明变量, 以 \verb|@| 开头(如 \verb|@var|). 赋值可通过 \verb|SET| 或 \verb|SELECT|.
+\begin{lstlisting}[language=SQL]
+DECLARE @Name NVARCHAR(50) = 'Alice';
+DECLARE @Counter INT = 0;
+SET @Counter = 1;
+SELECT @Name = Name FROM Users WHERE UserID = 1;
+\end{lstlisting}
+    \item 控制流:
+    \begin{enumerate}
+        \item 条件判断: \verb|IF...ELSE...| 和 \verb|CASE|.
+\begin{lstlisting}[language=SQL]
+IF @Age >= 18
+    PRINT 'Adult';
+ELSE
+    PRINT 'Minor';
+
+SELECT 
+    Name,
+    Status = CASE 
+        WHEN Salary > 10000 THEN 'High'
+        WHEN Salary > 5000 THEN 'Medium'
+        ELSE 'Low'
+    END
+FROM Employees;
+\end{lstlisting}
+        \item 循环结构: \verb|WHILE| 和 \verb|LOOP ... LEAVE / ITERATE|.
+\begin{lstlisting}[language=SQL]
+DECLARE @i INT = 1;
+WHILE @i <= 5
+BEGIN
+    PRINT 'Iteration ' + CAST(@i AS NVARCHAR);
+    SET @i += 1;
+END
+\end{lstlisting}
+    \end{enumerate}
+      \item 异常处理, 使用 \verb|TRY...CATCH|.
+\begin{lstlisting}
+BEGIN TRY
+    UPDATE Accounts SET Balance = Balance - 100 WHERE AccountID = 1;
+    UPDATE Accounts SET Balance = Balance + 100 WHERE AccountID = 2;
+END TRY
+BEGIN CATCH
+    ROLLBACK;
+    PRINT 'Error: ' + ERROR_MESSAGE();
+END CATCH
+\end{lstlisting}
+  \item 游标(Cursor).
+\begin{lstlisting}[language=SQL]
+-- 1. 声明游标
+DECLARE employee_cursor CURSOR FOR
+SELECT EmployeeID, Name FROM Employees WHERE Department = 'Sales';
+
+-- 2. 打开游标
+OPEN employee_cursor;
+
+-- 3. 声明变量存储提取的数据
+DECLARE @EmpID INT, @Name NVARCHAR(50);
+
+-- 4. 提取数据并处理
+FETCH NEXT FROM employee_cursor INTO @EmpID, @Name;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    PRINT 'Employee ID: ' + CAST(@EmpID AS NVARCHAR) + ', Name: ' + @Name;
+    FETCH NEXT FROM employee_cursor INTO @EmpID, @Name;
+END
+
+-- 5. 关闭游标
+CLOSE employee_cursor;
+
+-- 6. 释放游标
+FREE employee_cursor;
+\end{lstlisting}
+  \item 动态 SQL.
+\begin{lstlisting}[language=SQL]
+DECLARE @SQL NVARCHAR(MAX);
+SET @SQL = 'SELECT * FROM Users WHERE Name = ''Alice''';
+EXEC(@SQL);
+
+DECLARE @SQL NVARCHAR(MAX), @Name NVARCHAR(50) = 'Alice';
+SET @SQL = N'SELECT * FROM Users WHERE Name = @Name';
+EXEC sp_executesql @SQL, N'@Name NVARCHAR(50)', @Name;
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{服务器端 SQL 脚本形式}
+
+\begin{enumerate}
+    \item 批处理(Batch).一组 SQL 语句的集合, 通过 \verb|GO| 分隔.
+\begin{lstlisting}[language=SQL]
+-- GO 是 SQL Server 的批处理分隔符（非 SQL 标准）
+DECLARE @Msg NVARCHAR(50) = 'Hello';
+PRINT @Msg;
+GO
+PRINT @Msg; -- 错误：@Msg 作用域仅在第一个批处理中
+\end{lstlisting}
+    \item 存储过程(Stored Procedure): 预编译的 SQL 代码块, 可接受输入/输出参数.
+\begin{lstlisting}[language=SQL]
+CREATE PROCEDURE usp_GetEmployee
+    @ID INT
+AS
+BEGIN
+    SELECT * FROM Employees WHERE EmployeeID = @ID;
+END
+
+EXEC usp_GetEmployee @ID = 1;
+\end{lstlisting}
+  \item 函数(Function): 标量函数(返回单个值), 表值函数(返回表结果集).
+\begin{lstlisting}
+CREATE FUNCTION dbo.GetAge(@DOB DATE)
+RETURNS INT
+AS
+BEGIN
+    RETURN DATEDIFF(YEAR, @DOB, GETDATE());
+END
+
+SELECT dbo.GetAge('2000-01-01');
+
+CREATE FUNCTION dbo.GetEmployeesByDept(@Dept NVARCHAR(50))
+RETURNS TABLE
+AS
+RETURN SELECT * FROM Employees WHERE Department = @Dept;
+
+SELECT * FROM dbo.GetEmployeesByDept('Sales');
+\end{lstlisting}
+  \item 触发器(Trigger): 在表的 \verb|INSERT|, \verb|UPDATE|, \verb|DELETE| 操作前后自动执行的代码.
+\begin{lstlisting}[language=SQL]
+CREATE TRIGGER trg_AuditLog
+ON Employees
+AFTER UPDATE
+AS
+BEGIN
+    INSERT INTO AuditLog (Action, Timestamp)
+    VALUES ('Update', GETDATE());
+END
+\end{lstlisting}
+\end{enumerate}

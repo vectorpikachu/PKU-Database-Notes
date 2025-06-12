@@ -1,5 +1,20 @@
 \chapter{关系规范化}
 
+\begin{introduction}[期末考试提纲]
+  \item 数据异常包括哪些?
+  \item 函数依赖、部分函数依赖、完全函数依赖、传递函数依赖、多值依赖
+  \item 理解1NF、2NF、3NF、BCNF、4NF的概念
+  \item 逻辑蕴含、Armstrong公理
+  \item 属性集闭包及其计算, 候选码计算, 范式判定
+  \item 函数依赖集等价性判定算法
+  \item 最小覆盖计算过程
+  \item 关系模式分解的定义和目标, 函数依赖集向属性集的投影
+  \item 什么是无损连接分解
+  \item 保持函数依赖分解以及判定方法
+  \item 保持函数依赖的3NF分解
+  \item 保持无损连接的BCNF分解
+\end{introduction}
+
 \section{关系模式的设计问题}
 
 信息在关系模式中的表示完全取决于主码。
@@ -170,12 +185,6 @@
 \begin{definition}[1NF]
   关系中每一分量\fbox{不可再分}. 也即不能以集合、序列等作为属性值.
 \end{definition}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.5\textwidth]{./figure/1NF.pdf}
-    \caption{1NF}
-\end{figure}
 
 \begin{remark}
   1NF与应用对属性粒度的处理需求有关.

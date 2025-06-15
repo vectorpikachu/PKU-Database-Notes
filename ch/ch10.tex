@@ -402,23 +402,102 @@ fsync是昂贵操作, MySQL一次事务提交最多会导致3次fsync.
     \caption{检查点在系统故障恢复中的作用}
 \end{figure}
 
+\subsection{一致性检查点}
+
 一致性检查点: Consistent Checkpoint
+
+一致性检查点是最朴素的实现, 步骤如下:
+\begin{enumerate}
+    \item 停服: 禁止新事务启动, 等待正在执行的事务结束;
+    \item 遍历Buffer Pool, 将所有Dirty Page刷盘;
+    \item 记录一条Checkpoint Log;
+    \item 恢复服务: 允许所有事务正常执行.
+\end{enumerate}
+Recovery直接从Checkpoint Log开始, 之前的Log一律跳过.
+
+\subsection{模糊检查点}
 
 模糊检查点: Fuzzy Checkpoint
 
-"Unimport. There's a million things I haven't done."
+\begin{enumerate}
+    \item 记录一条 Checkpoint Begin Log;
+    \item 输出活跃事务列表ATT(Active Transaction Table)和脏页表DPT(Dirty Page Table);
+    \item 记录一条Checkpoint End Log, 包括ATT和DPT, 然后把Log刷盘;
+    \item 把Checkpoint Begin Log的LSN信息记录到Master Record中.
+\end{enumerate}
+
+Master Record: 磁盘上的一个文件, 记录最近一次Checkpoint Log的LSN, 通过它可以快速定位最近一次Checkpoint的Log.
+
+fuzzy checkpoint操作之所以名为fuzzy (模糊), 意思就是并不知道checkpoint操作何时结束, 
+只知道何时开始, 只需要在checkpoint-end结束的时候, 把checkpoint-begin时计算的ATT, DPT内容一起写入即可.
+
+可以看到, 这个算法既不要求开始时所有写事务都结束, 也不要求进行时停止所有写事务, 极大提升了并发性能.
+
+
+下面来看一个例子来理解fuzzy-checkpoint. 根据图\ref{fig:fuzzy}:
+\begin{itemize}
+    \item 事务$T_1$: 修改了页面$P_1$, 之后提交.
+    \item 事务$T_2$: 修改了页面$P_2$, 还未提交之前就开始了checkpoint操作.
+    \item 第一次checkpoint操作: 在开始checkpoint时, 系统中事务$T_2$还在进行, $P_2$为脏页面, 于是$ATT=\{T_2\}$, 以及$DPT=\{P_2\}$, 于是这一次checkpoint-end日志, 仅把已提交的事务$T_1$的修改同步到了数据库文件上, 即$A=120$. 注意, 事务$T_3$在checkpoint-begin操作之后, 所以并不会加入到这两个表中.
+    \item 结束了第一次checkpoint操作之后, MasterRecord修改为checkpoint-begin操作的LSN.
+    \item 继续到第二次checkpoint时, 这时候事务$T_2$已经完成, 而事务T3还在进行, 于是这一次checkpoint时, $ATT=\{T_3\}$, 以及$DPT=\{P_3\}$, 这样会把第一次checkpoint到第二次checkpoint之间的操作落盘, 如何落盘呢? 这时候会遍历这中间的WAL日志, 来修改ATT和DPT这两个表, 一旦一个事务变得不活跃, 就落盘.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{figure/FUZZY.pdf}
+    \caption{模糊检查点的一个例子}
+    \label{fig:fuzzy}
+\end{figure}
+
+如何处理检查点生成过程中重复变脏的页面?
+\begin{itemize}
+    \item 为避免在一次检查点生成过程中重复将页面写入磁盘, 为每个页面设置标志位, 开始时所有的位都相同(都为0或1);
+    \item 当检查点检查到某个页面时, 它将其标志位翻转, 直接跳过标志位相反的页面.
+\end{itemize}
+
+如何快速完成检查点生成过程中的写盘动作?
+\begin{itemize}
+    \item 尽量保证磁盘页的写入是连续的
+    \item 缓冲区中非连续页面可以被一次聚集写入(gather-write)磁盘
+    \item 检查点线程按照缓冲区编号顺序扫描页面, 当发现脏页时, 检查与该页在磁盘上连续的其他页面是否也是脏的
+    \item 假如它看到页面5是脏的, 它可能会写入页面10、 25、 38、500等, 这些页面在磁盘上是连续的
+\end{itemize}
+
+MySQL检查点执行时机:
+\begin{itemize}
+    \item Master Thread Checkpoint: 每秒或每10秒刷出一定比例的脏页
+    \item FLUSH\_LRU\_LIST Checkpoint: LRU列表中空闲页不够时淘汰的页面中有脏页
+    \item Dirty Page too much Checkpoint: innodb\_max\_dirty\_pages\_pct
+    \item Async/Sync Flush Checkpoint: redo\_lsn - checkpoing\_lsn超过日志文件大小75\%
+\end{itemize}
+
+\begin{definition}[最小恢复LSN]
+最小恢复LSN(MinLSN)是面这些LSN中的最小LSN:
+\begin{itemize}
+    \item 检查点起点的 LSN
+    \item 最老的活动事务起点的 LSN
+\end{itemize}
+\end{definition}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{figure/MINLSN.pdf}
+    \caption{MinLSN计算示例}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{figure/MINLSN与物理日志.pdf}
+    \caption{MinLSN与物理日志}
+\end{figure}
 
 
 \section{ARIES恢复算法}
 
 下面介绍ARIES恢复算法\cite{10.1145/128765.128770}.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.7\textwidth]{figure/policies.png}
-    \caption{Buffer Pool Policies}
-\end{figure}
-
+\subsection{Buffer Manager(BM)的实现策略}
 
 \begin{definition}[Steal Policy]
 是否允许未提交事务的修改在持久化存储上生效(Whether the DBMS allows an uncommitted txn to overwrite the most recent committed value of an object in non-volatile storage), 被称为Steal policy.
@@ -436,6 +515,194 @@ fsync是昂贵操作, MySQL一次事务提交最多会导致3次fsync.
 \end{itemize}
 \end{definition}
 
+Shadow Paging是采用no-steal+force策略的方案.
+
+WAL是steal+no-force的策略.
+
+checkpoint的问题: 要求checkpoint在进行的时候, 不得有任何的写事务在进行, 换言之checkpoint操作会影响写事务的进行. 所以, 如果checkpoint的频率太高, 影响写事务; 频率太低, 又会让单次checkpoint时间很长.
+
+ARIES给出了checkpoint的优化做法, 通过引入了一种重要的变量LSN(Log Sequence Number).
+
 ARIES算法也是no force + steal.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/policies.png}
+    \caption{Buffer Pool Policies}
+\end{figure}
+
+\subsection{日志类型}
+
+下面以 \verb|insert into X values(1)|为例:
+\begin{itemize}
+    \item 物理日志(Physical Log): 描述具体某一个 page 的修改操作.
+\begin{lstlisting}
+<T1,
+Table=X,
+page=20,
+Offset=50,
+Before Image=(nil),
+After Image=(1)>
+\end{lstlisting}
+    \item 逻辑日志(Logical Log): 逻辑日志的本质就是对更新语句(update query)本身的落盘.
+\begin{lstlisting}
+<T1, 
+insert into X values (1)>
+\end{lstlisting}
+    \item 物理逻辑日志(Physiological Log): 每一条日志仅仅涉及一个 page 的修改 + 日志内容为更新语句(update query)本身.
+\begin{lstlisting}
+<T1, Table=X,
+page=20,
+Type=Insert,
+Data=(1)>
+<T1, Index=X_pkey,
+page=40,
+Type=Insert,
+Data=(1)>
+\end{lstlisting}
+\end{itemize}
+
+InnoDB的Redo Log属于 Physiological Log, Undo Log属于Logical Log.
+
+MySQL Binlog的Row-Based和Statement-Based Log属于Logical Log.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+         & \textbf{数据量} & \textbf{幂等性} & \textbf{redo性能} & \textbf{undo性能} \\ \hline
+        Physical Log & 大 & 成立 & 快 & 快 \\ \hline
+        Logical Log & 小 & 不成立 & 不支持 & 慢 \\ \hline
+        Physiological Log & 中 & 不成立 & 快 & 快 \\ \hline
+    \end{tabular}
+    \caption{各种日志类型对比}
+\end{table}
+
+\textbf{为什么需要逻辑Undo日志?}
+
+当修改索引时, 如何保护索引页?
+\begin{itemize}
+    \item 传统封锁技术: 事务在更新一个数据项时给它施加X锁, 直至事务结束.
+    \item 如果事务$T$向B+树插入一项, 有可能造成页面拆分, 需要从根到叶都加X锁, 并且保持到事务结束, 并发性极低;
+    \item 可以采取闩锁, 使锁较早释放;
+    \item 如果在事务提交前释放了闩锁, 则其它事务可执行插入或删除操作, 造成对B+树结点的进一步改变.
+    \item 如果使用物理undo执行事务回滚, 也即将B+树内部结点(执行插入操作前)的旧值写回, 那么其它事务在其后执行的插入或删除操作可能会丢失.
+    \item 因此: 插入操作必须通过一个逻辑undo (删除操作)来完成.
+\end{itemize}
+
+总结: \textcolor{red}{ARIES算法遵循的一些原则}
+\begin{itemize}
+    \item ARIES算法遵循 \textcolor{red}{WAL} 原则;
+    \item ARIES算法使用\textcolor{red}{模糊检查点};
+    \item AREIS算法的BM遵循 \textcolor{red}{Non-Force, Steal};
+    \item ARIES算法使用\textcolor{red}{Page-oriented (大约就是物理或者物理逻辑日志)的Redo}, 使用\textcolor{red}{Logical级别的Undo}.
+\end{itemize}
+
+\subsection{ARIES恢复算法中的数据结构}
+
+\textbf{日志记录结构}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{figure/日志记录结构.pdf}
+    \caption{日志记录结构}
+\end{figure}
+
+\textbf{补偿日志CLR(Compensation Log Record)}
+\begin{itemize}
+    \item ARIES中的Logical Undo操作不具有幂等性, 不可以重复执行;
+    \item CLR把一条Logical Undo日志进行物化, 也即生成一个Page-oriented级的Redo Log, 通过更改页面来达到Undo的效果;
+    \item CLR是Redo-Only的, 保证已经Undo了的操作不会再被Undo.
+    \item UndoNext LSN: 只在CLR中出现, 用来指示下一条需要Undo的Log的LSN, 也即UndoNxtLSN是当前日志正在补偿的日志记录的PrevLSN值
+    \item 如果Undo到一半数据库挂掉后重启, 在重新执行Undo时, 只需先取出最后一条CLR Log的UndoNext LSN, 就能继续之前的Undo工作. (不会在执行某条Log的过程中突然崩溃.)
+\end{itemize}
+
+\textbf{页面结构}:
+
+数据库的每个页都有PageLSN域, 该域包含对该页面所做的最近更新日志记录的LSN.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/页面结构.pdf}
+    \caption{页面结构}
+\end{figure}
+
+\textbf{脏页表DPT}:
+\begin{itemize}
+    \item Dirty Page Table记录了所有的 Dirty Page 以及它们的 Rec LSN;
+    \item RecLSN用于标识引起该页变脏的第一个日志记录的LSN;
+    \item 当一页被插入到脏页表时, RecLSN被设置成日志的当前末尾;
+    \item 只要页被写入磁盘, 该页就被从脏页表中移除;
+    \item 从RecLSN开始可以保证找到这个页面从硬盘取出后的所有更改(沿着Log链找就可以了).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{figure/脏页表.pdf}
+    \caption{脏页表结构}
+\end{figure}
+
+\textbf{活跃事务列表(ATT)}:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.65\textwidth]{figure/活跃事务表.pdf}
+    \caption{活跃事务列表(ATT)结构}
+\end{figure}
+
+\subsection{ARIES恢复算法实现过程}
+
+\textbf{ARIES恢复算法三个原理}
+\begin{itemize}
+    \item 先写日志: 在将数据库对象的修改写入磁盘之前, 先将对应的日志记录写入稳存
+    \item 重现历史: 在崩溃后进行重启时, 重做崩溃前的所有操作, 使系统恢复到崩溃时的状态
+    \item 补偿日志: 在回滚事务时, 如果出现对数据库的改变, 为其生成补偿日志, 保证在重复进行重启时不需要重复这些操作
+\end{itemize}
+
+\textbf{ARIES算法三个阶段}
+\begin{itemize}
+    \item 分析阶段: 决定哪些事务要undo, 哪些页在崩溃时是脏的, 以及redo应从哪个LSN开始
+    \item Redo阶段: 从分析过程决定的位置开始, 执行redo, 重现历史, 将数据库恢复到发生崩溃前的状态
+    \item Undo阶段: 回滚在发生崩溃时那些不完整的事务
+\end{itemize}
+
+\textbf{ARIES算法: 分析过程}
+\begin{itemize}
+    \item 从MasterRecord获得最近一个检查点, 顺序扫描所有Log, 恢复出ATT和DPT.
+    \item ATT: 对于任一一个事务$T_i$, 如果:
+    \begin{itemize}
+        \item 遇到$T_i$的Begin Log, 就把$T_i$加入ATT, 同时把状态设为 Undo Candidate;
+        \item 遇到$T_i$的Commit Log, 就把 ATT 中的$T_i$状态设为 Committed;
+        \item 遇到$T_i$的End Log, 就把$T_i$从 ATT 中移除;
+        \item 遇到$T_i$的其他Log(Redo, Undo, CLR和Abort Log), 更新$T_i$的LastLSN.
+    \end{itemize}
+    \item DPT: 遇到任意 Redo Log 或 CLR, 如果对应的 Page
+    \begin{itemize}
+        \item 不在 DPT 中, 将它加入 DPT, 同时记录 RecLSN;
+        \item 已经在 DPT 中, 无需处理.
+    \end{itemize}
+\end{itemize}
+
+\textbf{ARIES算法: Redo过程} \textcolor{red}{通过重演所有没有反映在磁盘页上的动作来重复历史}
+\begin{itemize}
+    \item Redo过程从RedoLSN开始向前扫描日志, 该点之前的日志记录已经反映在磁盘数据库页上
+    \item 只要找到一个update日志记录, 它就执行如下动作:
+    \begin{itemize}
+        \item 如果该页不在脏页表中, 或者该update日志记录的LSN小于脏页表中该页的RecLSN, Redo过程就跳过该日志记录
+        \item 否则从磁盘调出该页, 如果其PageLSN小于该日志记录的LSN (Log LSN > Page LSN), 重做该日志记录, 修改PageLSN为该日志的LSN.
+    \end{itemize}
+    \item redo阶段为什么要重现历史?
+
+    一个事务中的Delete操作同时删除了Table Page和Index Page中的一条数据, 在数据库挂掉前只有Table Page被刷盘, 并且这个事务没有提交.
+
+    在Recovery期间, 如果不Redo这个Delete操作, 直接做 Logical Undo, 向Table Page 和 Index Page 各自 Insert 一条数据, 那么Index Page中会出现重复的数据
+
+    需要通过重现历史来将数据库中的数据恢复到Operation Consistency的状态, 保证后续 Logical Undo 的正确执行
+\end{itemize}
+
+\textbf{ARIES算法: Undo过程} \textcolor{red}{Undo过程反向扫描日志, 取消所有ATT中的事务}
+\begin{itemize}
+    \item 找到 ATT 中最大的 Last LSN, Undo它对应的事务, Undo完成后把该事务从 ATT 中移除. 重复上面步骤, 直到 ATT 为空.
+    \item 如果找到一个CLR, 它用UndoNextLSN字段跳过一个已经Undo了的事务日志, 否则, 它用事务日志的PrevLSN字段查找下一个要被撤消的日志.
+    \item 每当一个update日志记录被用于撤消, Undo过程产生一个包含undo执行动作的CLR, 并将CLR的UndoNextLSN设置为update日志记录的PreLSN值.
+\end{itemize}
+
 
 

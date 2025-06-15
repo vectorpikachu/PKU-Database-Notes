@@ -395,3 +395,61 @@ $ T_f $ 为 $ S $ 中所有 $ \text{read}(Q) $ 操作.
   rollback to sp2;
   commit;
 \end{lstlisting}
+
+\pagebreak
+
+\begin{problemset}
+  \item 考虑关系Employee(ID, salary), 有两个元组(A, 20)和(B, 30).
+  下面有两个事务$T_1$和$T_2$:
+  \begin{lstlisting}[language=SQL]
+-- 事务 T1
+begin transaction;
+  insert into Employee values ('C',30);
+  set salary = salary+10 where ID='A';
+commit;
+
+-- 事务 T2
+begin transaction;
+  select sum(salary) as sal1 from Employee;
+  select sum(salary) as sal2 from Employee;
+commit;
+  \end{lstlisting}
+  给出$T_1, T_2$在不同隔离性级别下所返回的sal1与sal2所有可能的值的情况, 填入表格中(只需考虑
+$T_1$是Serializable和Repeatable read, 另外注意MySQL有当前读和快照读).
+  
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|}
+    \hline
+    & \textbf{$T_1$: Repeatable read} & \textbf{$T_1$: Serializable} \\ \hline
+    $T_2$ & (sal1, sal2) & (sal1, sal2) \\ \hline
+    Read uncomitted & & \\ \hline
+    Read commited & & \\ \hline
+    Repeatable read & & \\ \hline
+    Serializable & & \\ \hline
+  \end{tabular}
+\end{table}
+
+  \item 调度类型判定. 
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.6\textwidth]{figure/image-20250520104027538.png}
+      \caption{调度类型}
+  \end{figure}
+  请在$S_1\sim S_3$, $S_4\sim S_6$, $S_7\sim S_9$和$S_{10}\sim S_{12}$之间各选择1个, 为其标注上页图中的标号, 并说明理由. 比如选择标号7, 要说明这个调度为什么是无级联的并且不是视图可串行化的.
+
+  \begin{align*}
+S_1: & \quad r_1(X),r_2(X),w_1(X),w_2(X)\\
+S_2: & \quad w_1(X),r_2(X),r_1(Y),r_2(X)\\
+S_3: & \quad r_1(X), r_2(Y),w_3(X),r_2(X),r_1(X)\\
+S_4: & \quad r_1(X), r_1(Y), w_1(X), r_2(Y), w_3(Y), w_1(X), r_2(Y) \\
+S_5: & \quad r_1(X), w_2(X), w_1(X), \text{abort}(T_2), \text{commit}(T_1) \\
+S_6: & \quad r_1(X), w_2(X), w_1(X), \text{commit}(T_2), \text{commit}(T_1) \\
+S_7: & \quad w_1(X), r_2(X), w_1(X), \text{abort}(T_2), \text{commit}(T_1) \\
+S_8: & \quad w_1(X), r_2(X), w_1(X), \text{commit}(T_2), \text{commit}(T_1) \\
+S_9: & \quad w_1(X), r_2(X), w_1(X), \text{commit}(T_2), \text{abort}(T_1) \\
+S_{10}: & \quad r_2(X), w_3(X), \text{commit}(T_3), w_1(Y), \text{commit}(T_1), r_2(Y), w_2(Z), \text{commit}(T_2) \\
+S_{11}: & \quad r_1(X), w_2(X), \text{commit}(T_2), w_1(X), \text{commit}(T_1), r_3(X), \text{commit}(T_3) \\
+S_{12}: & \quad r_1(X), w_2(X), w_1(X), r_3(Y), \text{commit}(T_1), \text{commit}(T_2), \text{commit}(T_3)
+\end{align*}
+\end{problemset}

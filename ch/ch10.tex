@@ -1,5 +1,14 @@
 \chapter{恢复控制}
 
+\begin{introduction}[期末考试复习提纲]
+    \item 故障类型
+    \item 备份概念及其类型
+    \item 日志定义、事务类型及其恢复操作、先写日志的WAL原则
+    \item 检查点概念及其作用
+    \item 基本的故障恢复操作
+    \item ARIES恢复算法所遵循的原则、所涉及到的重要数据结构、三个恢复阶段
+\end{introduction}
+
 \section{故障类型}
 
 故障分为三类:
@@ -29,15 +38,13 @@
 如磁盘损坏、磁带损坏. 磁盘的磁头碰撞, 瞬时的强磁场干扰.
 \end{definition}
 
-\section{故障恢复}
-
 \begin{definition}[恢复]
 恢复是把数据库从错误状态恢复到某一正确状态的功能, 从而确保数据库的一致性.
 
 恢复的基本原理是\textcolor{red}{冗余}. 即数据库中任一部分的数据可以根据存储在系统别处的冗余数据来重建.
 \end{definition}
 
-\subsection{备份}
+\section{备份}
 
 \begin{definition}[转储]
 将数据库复制到磁带或另一个磁盘上保存起来的过程.
@@ -128,7 +135,7 @@ crontab -e
 00 03 * * * /usr/local/mysql/backup/scripts/databases_backup.sh
 \end{lstlisting}
 
-\subsection{日志}
+\section{日志}
 
 \begin{definition}[日志]
 日志文件是以事务为单位用来记录数据库的每一次更新活动的文件, 由系统自动记录.
@@ -288,12 +295,147 @@ restore log MyDB from MyDB_log2 with recovery
     \item 大容量日志记录恢复: 允许大容量日志记录操作(bulk insert...). 数据库备份 + 差异备份(可选) + 事务日志备份.
 \end{enumerate}
 
-\subsection{WAL, Write Ahead Log}
+\section{WAL, Write Ahead Log}
 
 WAL 的中文名是预写日志系统, 其核心思想是把用户所有的修改操作(插入、删除)先写入日志中, 
 然后再应用到系统状态里. 
 一旦成功写完日志, 即可通知用户操作成功. 
 由于日志是以尾部追加方式写入, 耗时较短, 所以不会长时间阻塞用户线程.
 此外为防止意外退出导致数据丢失, 系统重启时还会根据日志重做用户操作, 以保证数据可靠性.
+
+\textbf{为什么不能先写数据库?}
+
+如果先写DB, 则可能在写的中途发生系统崩溃, 导致内存缓冲区内容丢失,
+而外存DB处于不一致状态, 由于日志缓冲区内容已破坏, 导致无法对DB恢复.
+
+\textbf{WAL总可以保证恢复的一致性!!!}
+
+\textcolor{red}{日志缓冲区和数据库缓冲区的写时机不同:}
+\begin{enumerate}
+    \item 同步(synchronous)写日志: 只有事务的相关日志已经完全在磁盘上了, 才会向进程发送该事务已提交的确认消息.
+    \item 异步(asynchronous)写缓冲区: 只需要将数据页的写入操作投递给操作系统即可, 不需要等待其完成.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\textwidth]{figure/读写页面.pdf}
+    \caption{读取一个页面的过程 (actually from 操作系统)}
+\end{figure}
+
+在主线程每秒一次的循环中, 将undo log缓冲器的内容刷新到重做日志文件中, 即便某个事务尚未提交.
+由参数\textcolor{red}{innodb\_flush\_log\_at\_trx\_commit}控制.
+\begin{itemize}
+    \item 0 代表提交事务时, 并不立即刷出日志, 而是等待主线程每秒的刷新;
+    \item 1 代表提交事务时, 将undo log同步写磁盘, 也即伴有fsync()的调用;
+    \item 2 代表提交事务时, 将undo log异步写磁盘, 也即写入文件系统缓存中.
+\end{itemize}
+
+fsync是昂贵操作, MySQL一次事务提交最多会导致3次fsync.
+
+将多个并发提交的事务共享一次fsync操作:
+\begin{itemize}
+    \item binlog\_group\_commit\_sync\_delay = N: 在等待N微秒后, 进行binlog刷盘操作
+    \item binlog\_group\_commit\_sync\_no\_delay\_count = N: 达到最大事务等待数量, 开始binlog刷盘
+\end{itemize}
+
+\section{故障恢复}
+
+\subsection{事务故障恢复}
+
+\textcolor{red}{事务故障恢复过程: 撤消事务已对数据库所做的修改}
+\begin{itemize}
+    \item 反向扫描日志文件, 查找该事务的更新操作
+    \item 对事务更新操作执行undo操作, 即将事务更新前的旧值写入数据库
+    \item 继续反向扫描日志文件, 查找该事务的其他更新操作, 并做同样处理
+    \item 直至读到事务的开始标识, 结束事务故障恢复过程
+\end{itemize}
+为什么同一事务的日志记录需要反向链接在一起? 加快撤销速度.
+
+反向undo: 保持一致性.
+
+\subsection{系统故障恢复}
+
+\textcolor{red}{系统故障造成不一致状态的原因}
+\begin{itemize}
+    \item 未完成事务对数据库的更新已写入数据库
+    \item 已提交事务对数据库的更新未写入数据库
+\end{itemize}
+
+\textcolor{red}{系统故障恢复过程}:
+\begin{itemize}
+    \item 正向扫描日志文件, 将圆满事务记入重做队列, 将夭折事务记入撤消队列;
+    \item 反向扫描日志, 对撤消队列中事务$T_i$的每条日志记录执行undo操作;
+    \item 正向扫描日志文件, 对重做队列中事务$T_i$的每条日志记录执行redo操作.
+\end{itemize}
+
+\subsection{介质故障恢复}
+
+\textcolor{red}{介质故障恢复过程}:
+\begin{itemize}
+    \item 装入最新的数据库后备副本, 使数据库恢复到最近一次转储时的一致性状态;
+    \item 装入相应的日志文件副本, 重做已完成的事务.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.6\textwidth]{figure/介质故障.pdf}
+    \caption{介质故障恢复过程}
+\end{figure}
+
+\section{检查点(Checkpoint)}
+
+如何减少\textbf{系统故障恢复}过程中必须重做的事务数量?
+\begin{itemize}
+    \item 当发生系统故障时, 我们必须搜索整个日志, 以决定哪些事务需要redo, 哪些需要undo
+    \item 大多数需要被重做的事务其更新已经写入了数据库中($\text{redo}^2$)
+    \item 尽管对它们重做不会造成不良后果, 但会使恢复过程变得更长
+\end{itemize}
+
+如何确保已提交事务的结果已经写入数据库了?
+\begin{itemize}
+    \item 保证在检查点时刻磁盘上日志文件与数据库的内容是一致的(就像Ctrl+S一样)
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/检查点.pdf}
+    \caption{检查点在系统故障恢复中的作用}
+\end{figure}
+
+一致性检查点: Consistent Checkpoint
+
+模糊检查点: Fuzzy Checkpoint
+
+"Unimport. There's a million things I haven't done."
+
+
+\section{ARIES恢复算法}
+
+下面介绍ARIES恢复算法\cite{10.1145/128765.128770}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/policies.png}
+    \caption{Buffer Pool Policies}
+\end{figure}
+
+
+\begin{definition}[Steal Policy]
+是否允许未提交事务的修改在持久化存储上生效(Whether the DBMS allows an uncommitted txn to overwrite the most recent committed value of an object in non-volatile storage), 被称为Steal policy.
+\begin{itemize}
+    \item 允许未提交事务的修改持久化存储上生效 $\to$ Steal policy.
+    \item 不允许 $\to$ No Steal Policy.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Force Policy]
+一个事务在提交之前是否需要将所有修改同步到持久化存储上(Whether the DBMS requires that all updates made by a txn are reflected on non-volatile storage before the txn is allowed to commit.)
+\begin{itemize}
+    \item 必须将事务的所有修改都同步到持久化存储上, 事务才被允许提交 $\to$ Force policy.
+    \item 不必 $\to$ No force policy.
+\end{itemize}
+\end{definition}
+
+ARIES算法也是no force + steal.
 
 

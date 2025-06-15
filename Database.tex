@@ -9,7 +9,7 @@
 %\version{4.5}
 %\bioinfo{自定义}{信息}
 
-%\extrainfo{注意：本模板自 2023 年 1 月 1 日开始，不再更新和维护！}
+\extrainfo{课程教材《数据库系统概念》\cite{database}}
 
 \setcounter{tocdepth}{3}
 
@@ -50,6 +50,9 @@
 
 \usepackage{makecell}
 
+\definecolor{lightred}{RGB}{255, 220, 220}
+\allowdisplaybreaks  % 允许 align 环境内分页
+
 \begin{document}
 
 \maketitle
@@ -58,6 +61,8 @@
 \tableofcontents
 
 \mainmatter
+
+
 
 \input{ch/ch1.tex} % FINISHED
 

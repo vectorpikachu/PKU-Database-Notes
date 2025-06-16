@@ -556,5 +556,160 @@ where gender = 'f' and income_level = 'L2';
 
 \subsection{多维索引}
 
+多维索引的主要目的是为了加速对多维数据的检索速度, 例如范围查询(Range Query)和最近邻查询(Nearest Neighbor Query). 根据教材里的说法, 这是关于空间数据(Spatial Data)的存储的.
+\begin{itemize}
+    \item Nearest neighbor queries, given a point or an object, find the nearest object that satisfies given conditions.
+    \item Range queries deal with spatial regions. e.g., ask for objects that lie partially or fully inside a specified region.
+    \item Queries that compute intersections or unions of regions.
+    \item Spatial join of two spatial relations with the location playing the role of join attribute.
+\end{itemize}
 
+\subsubsection{k-d tree}
 
+早期用于多维索引的结构之一: k-d tree.
+
+一棵 k-d 树的每一层都把空间分成两个部分, 在树顶层的节点处分区是沿着一个维度进行的, 在下一层节点中则沿着另一个维度进行. 分区的进行方式是这样的: 在每个节点处, 存储在子树中的大约一半的点落在一边且另一半落在另一边, 当一个节点的点数少于给定的最大点数时, 分区停止.
+
+下面我们把叶节点中的最大点数被设置为1, 其中每条线对应于k-d树的一个节点, 线的编号表示相应节点出现在树中的层级.
+
+比如说, 一个范围查询可能查找所有在$x$维度上是50到80, $y$维度是40到70. 可以通过以下递归过程来执行范围搜索:
+\begin{enumerate}
+    \item 假设节点是一个内部节点, 令它在点$x_i$处按一个特定维度(比如说$x$)被拆分. 左子树中的项所具有的$ x$值<$x_i$, 且右子树中的项所具有的$ x $值 $\geq x_i$. 如果查询范围包含$x_i$则在两个孩子上递归地执行搜索. 如果查询范围在$x_i$的左侧, 则只对左孩子执行递归搜索, 否则只在右子树上执行搜索.
+    \item 如果节点是叶节点, 则检索查询范围中包含的所有项.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{figure/k-d-tree.pdf}
+    \caption{k-d树的例子}
+\end{figure}
+
+\subsubsection{四叉树}
+
+四叉树(Quadtrees):
+\begin{enumerate}
+    \item 每个非叶子节点将其区域划分为四个大小相等的象限;
+    \item 每个这样的节点都有四个子节点, 分别对应于这四个象限, 依此类推;
+    \item 叶子节点的点数介于零到某个固定的最大点数之间(示例中设置为1).
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{figure/四叉树.pdf}
+    \caption{四叉树的例子}
+\end{figure}
+
+\subsubsection{R-tree}
+
+一种称为 R 树 (R-tree) 的存储结构对于跨越空间区域的对象(比如线段、矩形和其他
+多边形)以及点进行索引是有用的. R 树是一种平衡树结构, 索引对象存储在叶节点中, 这
+很像 B+树. 但是, 与每个树节点关联的不是值的范围, 而是矩形边框 (bounding box). 叶
+节点的边框是与包含叶节点中存储的所有对象的轴平行的最小矩形. 类似地, 内部节点的边
+框是与包含其孩子节点边框的轴平行的最小矩形, 一个对象(比如多边形)的边框被类似地
+定义为与包含该对象的轴平行的最小矩形.
+
+每个内部节点存储孩子节点的边框以及指向孩子节点的指针. 每个叶节点存储被索引的对象. 下面的例子中边框$i$的坐标被标记为$BB_i$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{figure/R-tree.pdf}
+    \caption{R树的例子}
+\end{figure}
+
+\subsection{LSM树}
+
+LSM树(Log-structured merge tree): 写优化的索引结构. \cite{oneilLogstructuredMergetreeLSMtree1996}
+
+\begin{itemize}
+    \item 磁盘的顺序读性能远胜于随机读;
+    \item B+树的读性能: \textcolor{red}{磁盘顺序读};
+    \item B+树的写性能: \textcolor{red}{磁盘随机写}.
+\end{itemize}
+
+\subsubsection{LSM树的设计思想}
+
+将$N$个数据划分成多个小的有序结构, 每$m$个数据在内存里排序一次, 这样就获
+得$N/m$个有序结构; 查询时从最新的一个有序结构里做二分查找, 如果没找到就继
+续查找下一个有序结构; 读取的时间复杂度是$N/m \times \log_2 N$
+
+随着小树越来越大, 内存中的小树会flush到磁盘中, 磁盘中的树定期做merge
+操作, 合并成一棵大树, 以优化读性能.
+
+合并时, 不会像B+树一样, 在原数据的位置上修改, 而是直接
+插入新的数据, 从而避免了随机写.
+
+\textcolor{red}{LSM-Tree属于传输型, 因为它会使
+用日志文件和一个内存存储结构把随机写操作转化为顺序写.}
+
+\subsubsection{LSM树的增删查改}
+
+LSM树结构横跨内存和磁盘, 包括:
+\begin{itemize}
+    \item memtable
+    \item immutable memtable
+    \item SSTable
+\end{itemize}
+
+\textbf{写入流程}:
+\begin{enumerate}
+    \item 来了一个$\text{put}(k,v)$操作, 首先追加到WAL日志中, 接下来加到C0层
+    \item 当C0层的数据达到一定大小, 就把C0层和C1层合并
+    \item 合并出来的新的new-C1会顺序写磁盘, 替换掉原来的old-C1
+    \item 合并之后所有旧文件都可以删掉
+\end{enumerate}
+
+\textbf{删除操作}:
+\begin{enumerate}
+    \item 当有删除操作时, 并不需要像B树一样, 在磁盘中找到相应的数据后再删除, 只需要在memtable中插入一条数据当作标志, 如delKey:1933;
+    \item 当读操作读到memtable中的这个标志时, 就会知道这个key已被删除;
+    \item 在随后的\textcolor{red}{日志合并}中, 这条被删除的数据会在合并过程中一起被删除.
+\end{enumerate}
+
+\textbf{更新操作}:
+\begin{enumerate}
+    \item 和删除操作类似, 都是只操作memtable, 写入一个标志, 随后真正的更新操作被延迟在合并时一并完成.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{figure/LSM.pdf}
+    \caption{LSM树的结构}
+\end{figure}
+
+\textbf{查询流程}:
+\begin{enumerate}
+    \item 读操作需要依次读取memtable、immutable memtable、SSTable0、SSTable1...
+    \item 需要反序遍历所有的集合, 序号小的集合中的数据一定会比序号大的集合中的数据新
+    \item 在这个反序遍历过程中一旦匹配到要读取的数据, 则一定是最新的数据, 返回该数据
+    \item 对于不存在的数据, 则会白白遍历所有集合: 引入\textcolor{red}{布隆过滤器(Bloom Filter)}\footnote{操作系统的期末考试论文题也考到了.}来加速读操作, 当它显示相应的SSTable中没有要读取的数据时, 就跳过该SSTable.
+\end{enumerate}
+
+\textbf{Bloom Filter}: 其中有$m$个位, 使用$k$个hash functions $h_1,h_2,...,h_k$, 映射后的值范围为$\{1,...,m\}$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.4\textwidth]{figure/bloom-filter.pdf}
+    \caption{Bloom Filter的一个例子}
+\end{figure}
+
+如图, 我们先向集合里插入了$x_1$和$x_2$, 分别hash了$k$次, 对于得到的每个位置都设置为1.
+
+接着, 我们试图查询$y_1$是否位于集合之中, 分别hash $k$次, 发现有位置是0, 这就意味着$y_1$肯定不在集合中(利用反证法, 假设在, 那么存在一个$x_t$使得$h_i(y_1)=h_i(x_t), i=1,2,...,k$, 这就意味着hash得到的位置应该都是1, 现在却反而有0, 矛盾!); 但是现在查询$y_2$, 发现hash的位置都是1了, 这就说明有可能在集合中, 也有可能不在.
+
+\subsubsection{LSM-tree读写放大}
+
+读写放大(read and write amplification)是 LSM-tree 的主要问题:
+\begin{itemize}
+    \item 读写放大 = 磁盘实际读写的数据量 / 用户访问的数据量
+\end{itemize}
+
+\begin{itemize}
+    \item 以 Level Style Compaction机制为例, 它每次拿上一层的所有文件和下一层合并, 下一层大小是上一层的$ r $倍, 单次合并的写放大就是$r$倍;
+    \item 假如现在有三层, 文件大小分别是: 9, 90, 900, $r=10$. 又写了个1, 这时就会不断合并, 1 + 9 = 10, 10 + 90 = 100, 100 + 900 = 1000, 总共写了10 + 100 + 1000.
+    \item \textcolor{red}{读写放大 = 10/1 + 100/10 + 1000/100 = 30 = $r \times level$.}
+\end{itemize}
+
+\textcolor{red}{key-value越小读放大越大.}
+\begin{itemize}
+    \item 为了查询一个 1KB 的数据, 最坏需要读 L0 层的 8 个文件, 再读 L1 到 L6 的每一个文件, 一共 14 个文件;
+    \item 而每个文件内部需要读16KB的索引, 4KB的布隆过滤器, 4KB的数据块, 一共 24 * 14 / 1 = 336倍.
+\end{itemize}

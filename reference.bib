@@ -60,4 +60,49 @@ numpages = {69},
 keywords = {write-ahead logging, space management, locking, latching, buffer management}
 }
 
+@Book{ArpaciDusseau23-Book,
+  author =       {Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau},
+  title =        "{Operating Systems: Three Easy Pieces}",
+  publisher =    {Arpaci-Dusseau Books},
+  month =        "November",
+  year =         {2023},
+  edition =      {1.10},
+}
 
+@incollection{stonebrakerCstoreColumnorientedDBMS2018,
+  title = {C-Store: A Column-Oriented {{DBMS}}},
+  shorttitle = {C-Store},
+  booktitle = {Making {{Databases Work}}: The {{Pragmatic Wisdom}} of {{Michael Stonebraker}}},
+  author = {Stonebraker, Mike and Abadi, Daniel J. and Batkin, Adam and Chen, Xuedong and Cherniack, Mitch and Ferreira, Miguel and Lau, Edmond and Lin, Amerson and Madden, Sam and O'Neil, Elizabeth and O'Neil, Pat and Rasin, Alex and Tran, Nga and Zdonik, Stan},
+  editor = {{Massachusetts Institute of Technology} and Brodie, Michael L.},
+  year = {2018},
+  month = dec,
+  edition = {1},
+  pages = {491--518},
+  publisher = {Association for Computing Machinery},
+  doi = {10.1145/3226595.3226638},
+  urldate = {2025-06-16},
+  abstract = {This paper presents the design of a read-optimized relational DBMS that contrasts sharply with most current systems, which are write-optimized. Among the many differences in its design are: storage of data by column rather than by row, careful coding and packing of objects into storage including main memory during query processing, storing an overlapping collection of columnoriented projections, rather than the current fare of tables and indexes, a non-traditional implementation of transactions which includes high availability and snapshot isolation for read-only transactions, and the extensive use of bitmap indexes to complement B-tree structures.},
+  isbn = {978-1-947487-19-2},
+  langid = {english},
+  file = {D:\zotero-storage\storage\9CSS4V3N\Stonebraker 等 - 2018 - C-store a column-oriented DBMS.pdf}
+}
+
+@article{lambVerticaAnalyticDatabase2012,
+  title = {The Vertica Analytic Database: {{C-store}} 7 Years Later},
+  shorttitle = {The Vertica Analytic Database},
+  author = {Lamb, Andrew and Fuller, Matt and Varadarajan, Ramakrishna and Tran, Nga and Vandiver, Ben and Doshi, Lyric and Bear, Chuck},
+  year = {2012},
+  month = aug,
+  journal = {Proc. VLDB Endow.},
+  volume = {5},
+  number = {12},
+  pages = {1790--1801},
+  issn = {2150-8097},
+  doi = {10.14778/2367502.2367518},
+  urldate = {2025-06-16},
+  abstract = {This paper describes the system architecture of the Vertica Analytic Database (Vertica), a commercialization of the design of the C-Store research prototype. Vertica demonstrates a modern commercial RDBMS system that presents a classical relational interface while at the same time achieving the high performance expected from modern "web scale" analytic systems by making appropriate architectural choices. Vertica is also an instructive lesson in how academic systems research can be directly commercialized into a successful product.},
+  langid = {english},
+  annotation = {TLDR: Vertica demonstrates a modern commercial RDBMS system that presents a classical relational interface while at the same time achieving the high performance expected from modern "web scale" analytic systems by making appropriate architectural choices.},
+  file = {D:\zotero-storage\storage\C7NTJHFY\Lamb 等 - 2012 - The vertica analytic database C-store 7 years later.pdf}
+}

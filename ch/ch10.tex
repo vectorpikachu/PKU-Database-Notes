@@ -96,10 +96,10 @@ mysqldump -uroot -p --databases myDb1 myDb2 > /home/mysql/backups/mysqldump_data
 # 备份数据库 myDb 中的单张表 myTb
 mysqldump -uroot -p myDb myTb > /home/mysql/backups/mysqldump_myTb.sql
 
-# 备份 myDb 数据库中的 myTb 表，并且只导出 id <= 10 的记录
+# 备份 myDb 数据库中的 myTb 表,并且只导出 id <= 10 的记录
 mysqldump -uroot -p --databases myDb --tables myTb --where="id <= 10" > /home/mysql/backups/mysqldump_myTb10.sql
 
-# 仅备份 db1 和 db2 的数据库结构（不包含数据）
+# 仅备份 db1 和 db2 的数据库结构(不包含数据)
 mysqldump --no-data --databases db1 db2 > /home/mysql/backups/structure.sql
 
 # 在 MySQL 客户端中使用 source 恢复全库备份
@@ -208,10 +208,10 @@ MySQL日志文件:
 
 慢查询日志的例子:
 \begin{lstlisting}[language=sql]
--- 开启慢查询日志功能（1 表示开启）
+-- 开启慢查询日志功能(1 表示开启)
 SET GLOBAL slow_query_log = 1;
 
--- 设置慢查询日志文件的保存路径（Windows 系统下路径为 C:\slow_statement.log）
+-- 设置慢查询日志文件的保存路径(Windows 系统下路径为 C:\slow_statement.log)
 -- 注意：MySQL 进程必须对该路径有写入权限
 SET GLOBAL slow_query_log_file = 'C:\\slow_statement.log';
 
@@ -219,40 +219,40 @@ SET GLOBAL slow_query_log_file = 'C:\\slow_statement.log';
 -- 所有执行时间超过 10 秒的 SQL 查询会被记录到慢查询日志中
 SET GLOBAL long_query_time = 10;
 
--- 设置慢查询日志输出方式为文件（FILE），也可以设置为 TABLE（表）
+-- 设置慢查询日志输出方式为文件(FILE),也可以设置为 TABLE(表)
 SET GLOBAL log_output = 'FILE';
 
--- 测试语句：执行一个耗时较长的操作，用于触发慢查询日志记录
--- 此处重复执行 MD5('mysql') 函数 99,999,999 次，模拟耗时操作
--- 如果该查询执行时间超过 long_query_time（10秒），则会被记录到慢查询日志中
+-- 测试语句：执行一个耗时较长的操作,用于触发慢查询日志记录
+-- 此处重复执行 MD5('mysql') 函数 99,999,999 次,模拟耗时操作
+-- 如果该查询执行时间超过 long_query_time(10秒),则会被记录到慢查询日志中
 SELECT BENCHMARK(99999999, MD5('mysql'));
 \end{lstlisting}
 
 事务日志是自上次备份事务日志后对数据库执行的所有事务记录, 它可以将数据库恢复到特定时点或恢复到故障点.
 \begin{lstlisting}[language=sql]
--- 1. 对数据库 MyDB 执行完整备份，备份到备份设备 MyDB_1
--- 完整备份是所有其他备份（差异、日志）的基础
+-- 1. 对数据库 MyDB 执行完整备份,备份到备份设备 MyDB_1
+-- 完整备份是所有其他备份(差异、日志)的基础
 BACKUP DATABASE MyDB TO MyDB_1;
 
--- 2. 对数据库 MyDB 执行事务日志备份，备份到备份设备 MyDB_log1
--- 此时会截断日志，并记录从上一次备份以来的所有事务日志
+-- 2. 对数据库 MyDB 执行事务日志备份,备份到备份设备 MyDB_log1
+-- 此时会截断日志,并记录从上一次备份以来的所有事务日志
 BACKUP LOG MyDB TO MyDB_log1;
 
--- 3. 再次对数据库 MyDB 执行事务日志备份，备份到备份设备 MyDB_log2
--- 使用 WITH NO_TRUNCATE 表示不截断事务日志，允许后续继续备份
--- 注意：一般只在紧急情况下使用，避免日志文件无限增长
+-- 3. 再次对数据库 MyDB 执行事务日志备份,备份到备份设备 MyDB_log2
+-- 使用 WITH NO_TRUNCATE 表示不截断事务日志,允许后续继续备份
+-- 注意：一般只在紧急情况下使用,避免日志文件无限增长
 BACKUP LOG MyDB TO MyDB_log2 WITH NO_TRUNCATE;
 
--- 4. 恢复完整备份，从备份设备 MyDB_1 还原数据库 MyDB
--- 使用 WITH NORECOVERY 表示数据库仍处于还原状态，等待后续日志应用
+-- 4. 恢复完整备份,从备份设备 MyDB_1 还原数据库 MyDB
+-- 使用 WITH NORECOVERY 表示数据库仍处于还原状态,等待后续日志应用
 RESTORE DATABASE MyDB FROM MyDB_1 WITH NORECOVERY;
 
 -- 5. 应用第一个事务日志备份 MyDB_log1
--- 仍然使用 WITH NORECOVERY，表示还有更多日志需要恢复
+-- 仍然使用 WITH NORECOVERY,表示还有更多日志需要恢复
 RESTORE LOG MyDB FROM MyDB_log1 WITH NORECOVERY;
 
 -- 6. 应用第二个事务日志备份 MyDB_log2
--- 使用 WITH RECOVERY 表示这是最后一次恢复操作，数据库将变为可用状态
+-- 使用 WITH RECOVERY 表示这是最后一次恢复操作,数据库将变为可用状态
 RESTORE LOG MyDB FROM MyDB_log2 WITH RECOVERY;
 \end{lstlisting}
 

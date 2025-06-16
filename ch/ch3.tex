@@ -817,3 +817,60 @@ ps. 鉴于PPT里出现了若干次“验算”和若干次“演算”, 下面�
         \item 不能旁路(bypass)或者关闭约束检查子系统.
     \end{itemize}
 \end{itemize}
+
+\begin{problemset}
+    \item 
+    \begin{itemize}
+    \item S(SNO, SNAME, CITY)
+    \item P(PNO, PNAME, COLOR, PRICE)
+    \item J(JNO, JNAME, CITY)
+    \item SPJ(SNO, PNO, JNO, QTY)
+    \end{itemize}
+    S表示供应商,各属性依次为供应商号,供应商名,供应商所在城市；
+
+    P表示零件,各属性依次为零件号,零件名,零件颜色,零件价格；
+
+    J表示工程,各属性依次为工程号,工程名,工程所在城市；
+
+    SPJ表示供货关系,各属性依次为供应商号,零件号,工程号,供货数量。
+    \begin{enumerate}
+  \item 求向北京的工程供应了红色零件的供应商姓名
+  
+  \item
+  求同时向位于北京和天津的工程供应了零件的供应商的供应商名
+  
+  \item
+  求向和自己位于相同城市的工程供应零件的供应商的供应商号
+  
+  \item
+  求只向和自己位于不同城市的工程供应零件的供应商的供应商号
+  
+  \item
+  求向所有位于北京的工程都供应了零件的供应商的供应商号
+  
+  \item 求价格最高的零件的零件号
+\end{enumerate}
+    \item 对于选课表$SC(sno, cno, grade)$,询问大模型,完成如下查询:
+\begin{enumerate}
+  \item 求恰好选修了$c_1$和$c_2$课程的学生
+  
+  \item 求选修了所有$s_1$同学所修课程的学生
+  
+  \item 求其选修课程被$s_1$同学所修课程完全包含的学生
+  
+  \item 求和$s_1$同学所修课程完全不同的学生
+  
+  \item 求和$s_1$同学所修课程完全相同的学生
+  
+  \item 求所修课程完全不同的学生对
+  
+  \item 求所修课程完全相同的学生对
+\end{enumerate}
+    \item 对于关系$R (A, B)$,用关系代数来检验$A$是否取值唯一. 更进一步, 对于关系$R(A, B, C)$, 用关系代数来检验$A$是否取值唯一. (注意, ``唯一''的意思是两两不同, 而不是只取同一个值, 那个应该叫``单一'')
+    \item 对于选课表$SC(sno, cno, grade)$,分别用元组关系演算和域关系演算,完成如下查询:
+\begin{enumerate}
+  \item 求同时选修了$c_1$和$c_2$课程的学生
+  
+  \item 求选修$c_1$课程成绩比$s_1$同学的该门课程成绩高的学生
+\end{enumerate}
+\end{problemset}

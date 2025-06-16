@@ -15,7 +15,7 @@
 
 物化路径: \verb|material_path(node, path)|. 从起点出发的路径.
 
-嵌套集合: \verb|nestedSet(node, left_value, right_value)|. \textit{嵌套集模型是根据树遍历来对节点进行编号，遍历会访问每个节点两次，按访问顺序分配数字，并在两次访问中都分配。这将为每个节点留下两个数字，它们作为节点两个属性存储。这使得查询变得高效：通过比较这些数字来获得层级结构关系。但是更新数据将需要给节点重新分配数字，因此变得低效。}
+嵌套集合: \verb|nestedSet(node, left_value, right_value)|. \textit{嵌套集模型是根据树遍历来对节点进行编号,遍历会访问每个节点两次,按访问顺序分配数字,并在两次访问中都分配.这将为每个节点留下两个数字,它们作为节点两个属性存储.这使得查询变得高效：通过比较这些数字来获得层级结构关系.但是更新数据将需要给节点重新分配数字,因此变得低效.}
 
 \subsection{递归查询}
 
@@ -97,17 +97,17 @@ end
 
 \subsection{层次结构典型查询问题}
 
-树形结构（数据存放在邻接表中）
+树形结构(数据存放在邻接表中)
 \begin{enumerate}
-    \item 返回给定节点的所有下属，并标注层级
-    \item 返回给定节点的所有上级，并标注层级
-    \item 移动子树，将一颗子树的根节点换成另外一个
-    \item 将邻接表转换为物化路径，并存放在一个表中
-    \item 基于物化路径表，查询指定节点的所有子节点
-    \item 基于物化路径表，查询指定节点的所有父节点
-    \item 将邻接表转换为嵌套集合，并存放在一个表中
-    \item 基于嵌套集合表，查询指定节点的所有子节点
-    \item 基于嵌套集合表，查询指定节点的所有父节点
+    \item 返回给定节点的所有下属,并标注层级
+    \item 返回给定节点的所有上级,并标注层级
+    \item 移动子树,将一颗子树的根节点换成另外一个
+    \item 将邻接表转换为物化路径,并存放在一个表中
+    \item 基于物化路径表,查询指定节点的所有子节点
+    \item 基于物化路径表,查询指定节点的所有父节点
+    \item 将邻接表转换为嵌套集合,并存放在一个表中
+    \item 基于嵌套集合表,查询指定节点的所有子节点
+    \item 基于嵌套集合表,查询指定节点的所有父节点
 \end{enumerate}
 
 图
@@ -233,7 +233,7 @@ XPath (XML Path Language)是一种用于在 XML 或 HTML 文档中定位和选�
     \hline
     / & 从根节点开始选取 & /bookstore/book \\
     \hline
-    // & 从当前节点开始，选取文档中任意位置的节点 & //title \\
+    // & 从当前节点开始,选取文档中任意位置的节点 & //title \\
     \hline
     . & 当前节点 & .//price \\
     \hline
@@ -251,7 +251,7 @@ XPath (XML Path Language)是一种用于在 XML 或 HTML 文档中定位和选�
     \hline
     \textbf{表达式} & \textbf{含义} & \textbf{示例} \\
     \hline
-    * & 选取所有子节点 & /* （根节点的所有子元素） \\
+    * & 选取所有子节点 & /* (根节点的所有子元素) \\
     \hline
     @* & 选取所有属性 & //@lang \\
     \hline
@@ -263,7 +263,7 @@ XPath (XML Path Language)是一种用于在 XML 或 HTML 文档中定位和选�
 
 谓语(条件筛选):
 \begin{itemize}
-    \item \textbf{索引筛选}: [n] 选择第 n 个节点（从 1 开始计数）：
+    \item \textbf{索引筛选}: [n] 选择第 n 个节点(从 1 开始计数)：
     \begin{verbatim}
 /bookstore/book[1]  % 第一个 book 节点
     \end{verbatim}
@@ -304,7 +304,7 @@ MySQL中的XML函数: \verb|ExtractValue(xml_target, xpath_expr)|, 从 XML 数�
 SELECT ExtractValue('<note><to>Tove</to></note>', '/note/to');
 -- 结果: Tove
 
--- 提取多个节点的值（使用 `|` 分隔）
+-- 提取多个节点的值(使用 `|` 分隔)
 SELECT ExtractValue('<a><b>1</b><c>2</c></a>', '//b/text() | //c/text()');
 -- 结果: 1 2
 \end{lstlisting}
@@ -406,7 +406,7 @@ FROM json_table(
 
 将JSON展开为平面表: 数组的unwind操作.
 \begin{lstlisting}[language=SQL]
--- 展开 JSON 中的嵌套数组（类似 unwind 操作）
+-- 展开 JSON 中的嵌套数组(类似 unwind 操作)
 SELECT *
 FROM json_table(
     '[{"a": 1, "b": [11, 111]}, {"a": 2, "b": [22, 222]}, {"a": 3}]',
@@ -473,7 +473,7 @@ INSERT INTO items (embedding) VALUES
     ('[1,2,3]'),
     ('[4,5,6]');
 
--- 4. 创建索引（IVFFlat）
+-- 4. 创建索引(IVFFlat)
 CREATE INDEX idx_items_embedding_ivfflat 
 ON items 
 USING ivfflat (embedding vector_l2_ops) 

@@ -17,7 +17,7 @@
 
 \section{关系模式的设计问题}
 
-信息在关系模式中的表示完全取决于主码。
+信息在关系模式中的表示完全取决于主码.
 
 \begin{table}[H]
   \centering
@@ -41,21 +41,21 @@
 
 
 \begin{enumerate}
-    \item 信息的不可表示问题。
+    \item 信息的不可表示问题.
     \begin{enumerate}
-        \item 插入异常：如果没有职工具有8级工资，则8级工资的工资数额就难以插入。
-        \item 删除异常：如果仅有职工赵明具有4级工资，删除赵明则会将有关4级工资的工资数额信息也一并删除。
+        \item 插入异常：如果没有职工具有8级工资,则8级工资的工资数额就难以插入.
+        \item 删除异常：如果仅有职工赵明具有4级工资,删除赵明则会将有关4级工资的工资数额信息也一并删除.
     \end{enumerate}
     \item 信息的冗余问题.
     \begin{enumerate}
-        \item 数据冗余：职工很多，工资级别有限，每一级别的工资数额反复存储多次。
-        \item 更新异常：如果将5级工资的工资数额调为620，则需要找到每个具有5级工资的职工，逐一修改。
+        \item 数据冗余：职工很多,工资级别有限,每一级别的工资数额反复存储多次.
+        \item 更新异常：如果将5级工资的工资数额调为620,则需要找到每个具有5级工资的职工,逐一修改.
     \end{enumerate}
 \end{enumerate}
 
 \ 
 
-\fbox{职工}$\to$\fbox{级别}$\to$\fbox{工资}。\textbf{分解}为：\fbox{职工}$\to$\fbox{级别} + \fbox{级别}$\to$\fbox{工资}。
+\fbox{职工}$\to$\fbox{级别}$\to$\fbox{工资}.\textbf{分解}为：\fbox{职工}$\to$\fbox{级别} + \fbox{级别}$\to$\fbox{工资}.
 
 \section{函数依赖}
 
@@ -79,7 +79,7 @@
 
 如, $(sno,sname)\to sname$是平凡的函数依赖.
 
-\textit{一个关系模式有$n$个属性，在它上面成立的所有可能的函数依赖有多少个？非平凡的函数依赖有多少个？}
+\textit{一个关系模式有$n$个属性,在它上面成立的所有可能的函数依赖有多少个？非平凡的函数依赖有多少个？}
 
 \textbf{Answer.} 需要计算$X\to Y$的个数. 其中$X$和$Y$都是非空子集, 这就可以知道答案为$(2^n-1)^2$.  先计算出平凡的函数依赖个数. 也就是$Y\subseteq X$的个数, $\sum_{k=1}^{n} \binom{n}{k} (2^k-1)=3^n-2^n$. 接着减去这个数, 得到: $2^{2n}-2^n-3^n+1$.
 
@@ -96,10 +96,10 @@
   定义\ref{def:trans-func-dep}中$Y\nrightarrow X$意味着必须通过$Y$来传递, 而$Z\nsubseteq Y$说明并非平凡依赖, 否则可以直接导出$X\to Z$.
 \end{remark}
 
-主要问题：如果关系模式设计不当，把本来彼此没有依赖关系的两个属性放在同一个关系模式中，所造成的对候选码的部分依赖和传递依赖是在现实中不存在的，从而会出现异常。
+主要问题：如果关系模式设计不当,把本来彼此没有依赖关系的两个属性放在同一个关系模式中,所造成的对候选码的部分依赖和传递依赖是在现实中不存在的,从而会出现异常.
 \textit{E.g., 学号$\to$系号, 系号$\to$系主任, 这样学号$\to$系主任, 这是不合理的.}
 
-\section{码的定义（使用函数依赖）}
+\section{码的定义(使用函数依赖)}
 
 \begin{definition}[超码]
   设$K$为$R(U,F)$的属性或属性组, 若$K\to U$, 则称$K$为$R$的超码.
@@ -189,19 +189,19 @@
 \begin{remark}
   1NF与应用对属性粒度的处理需求有关.
 
-  较细的原子粒度有助于标准化，施加约束避免输入错误，从而提高数据质量。
+  较细的原子粒度有助于标准化,施加约束避免输入错误,从而提高数据质量.
 \end{remark}
 
 \textbf{1NF关系模式的不良特性}, 我们考察表\ref{tab:xuesheng1}.
 \begin{enumerate}
-    \item 插入异常：如果学生没有选课，关于他的个人信息及所在系的信息就无法插入。
-    \item 删除异常：如果删除学生的选课信息，则他的个人信息及所在系的信息也随之删除。
-    \item 更新异常：如果学生转系，若他选修了$k$门课，则需要修改$k$次。
-    \item 数据冗余：如果一个学生选修了$k$门课，则有关他的所在系的信息重复$k$次。
+    \item 插入异常：如果学生没有选课,关于他的个人信息及所在系的信息就无法插入.
+    \item 删除异常：如果删除学生的选课信息,则他的个人信息及所在系的信息也随之删除.
+    \item 更新异常：如果学生转系,若他选修了$k$门课,则需要修改$k$次.
+    \item 数据冗余：如果一个学生选修了$k$门课,则有关他的所在系的信息重复$k$次.
 \end{enumerate}
 这些不良特性意味着非主属性对码存在着部分依赖: $(sno,cno)\overset{p}{\rightarrow} sname$, $(sno,cno)\overset{p}{\rightarrow} dno$, $(sno,cno)\overset{p}{\rightarrow} dean$.
 
-从而我们提出了2NF来消除非主属性对码的部分依赖。
+从而我们提出了2NF来消除非主属性对码的部分依赖.
 
 \subsection{2NF}
 
@@ -257,7 +257,7 @@
   考虑$STC(sno,tno,cno)$, 我们有:
   \begin{enumerate}
       \item 每位老师只教授一门课: $tno \to cno$.
-      \item 某学生选定一门课，就对应一位老师: $(sno,cno)\to tno$.
+      \item 某学生选定一门课,就对应一位老师: $(sno,cno)\to tno$.
   \end{enumerate}
 
   从而候选码为: $(sno, tno)$或$(sno,cno)$. 
@@ -325,7 +325,7 @@ $STC\notin \text{BCNF}$, 因为$tno\to cno$, 但是$tno$不是码.
     t_3 &= (t_1[X], t_1[Y], t_2[Z]) \\
     t_4 &= (t_2[X], t_2[Y], t_1[Z]) 
   \end{align*}
-  则称$Y$多值依赖于$X$，记作$X \to\to Y$.
+  则称$Y$多值依赖于$X$,记作$X \to\to Y$.
 \end{definition}
 
 \begin{figure}[H]
@@ -353,7 +353,7 @@ $STC\notin \text{BCNF}$, 因为$tno\to cno$, 但是$tno$不是码.
 \end{definition}
 
 \begin{remark}
-  $X \to\to Y$ 在 $U$ 上成立 $\Rightarrow$ $X \to\to Y$ 在属性集 $W (XY \subseteq W \subseteq U)$ 上成立. \textbf{这是全集!} $A \to\to B$ 在 $ABCD$ 上成立，则在 $ABC$ 上也成立.
+  $X \to\to Y$ 在 $U$ 上成立 $\Rightarrow$ $X \to\to Y$ 在属性集 $W (XY \subseteq W \subseteq U)$ 上成立. \textbf{这是全集!} $A \to\to B$ 在 $ABCD$ 上成立,则在 $ABC$ 上也成立.
 
   若 $X \to\to Y$ 在 $R(U)$ 上成立,
   则对于 $\forall Y' \subseteq Y$, 不能确定 $X \to\to Y'$ 是否成立.
@@ -381,7 +381,7 @@ $STC\notin \text{BCNF}$, 因为$tno\to cno$, 但是$tno$不是码.
 
 \begin{definition}[连接依赖]
   $R_1(U_1), R_2(U_2), \dots, R_n(U_n)$ 是 $R(U)$ 的一个分解,
-  $r$ 是 $R(U)$ 上的一个关系，若 $r = \bowtie_{i=1}^{n} \Pi_{R_i}(r)$,
+  $r$ 是 $R(U)$ 上的一个关系,若 $r = \bowtie_{i=1}^{n} \Pi_{R_i}(r)$,
   则称 $r$ 满足连接依赖 $\leftindex^*(R_1, R_2, \dots, R_n)$.
 \end{definition}
 
@@ -456,7 +456,7 @@ $\alpha \to\to \beta \Leftrightarrow \leftindex^{*}(\alpha \cup (R - \beta), \al
 \begin{algorithm}[H]
 \caption{属性集 $X$ 关于函数依赖集 $F$ 的闭包 $X_F^+$ 的计算}
 \label{algo:bibao}
-\KwIn{属性集 $X$，函数依赖集 $F$}
+\KwIn{属性集 $X$,函数依赖集 $F$}
 \KwOut{$X_F^+$}
 
 $X_F^+ \gets X$\;
@@ -946,3 +946,48 @@ $R(XYZ)$还是$R_1(XY)$和$R_2(XZ)$?
 从而指导垂直分区或矩阵聚类, 优化磁盘I/O与事务并发性能.
 
 属性关联矩阵 $\to$ 属性带权关联图 $\to$ 图分割.
+
+\begin{problemset}
+  \item 问答题:
+  \begin{enumerate}
+      \item 一个全是主属性的关系模式最高一定可以达到第几范式?
+      \item 一个全码的关系模式最高一定可以达到第几范式?
+      \item 任何一个二目关系模式$R (A, B)$一定属于BCNF吗?
+      \item 一个只有一个候选码的3NF关系模式是BCNF的吗?
+      \item 3NF设计和BCNF设计各自的优缺点是什么?
+      \item 多值依赖和函数依赖的异同点有哪些?
+      \item BCNF分解算法是如何保证分解是无损的?
+      \item 3NF分解算法的第3步, 如何确定此时关系模式已经是3NF的了?
+  \end{enumerate}
+  \item $R (ABCDE), F =\{AB \rightarrow C, B \rightarrow D, CD
+\rightarrow E, CE \rightarrow B, AC \rightarrow B\}$.
+\begin{enumerate}
+  \item 给出其候选码.
+  
+  \item 判断范式级别.
+  
+  \item 分别给出保持无损连接和函数依赖的分解.
+\end{enumerate}
+  \item $R ({ABCDE})$, 给出下面函数依赖集在$S
+({ABCD})$上的投影.
+
+$F =\{{AB} \rightarrow D, {AC} \rightarrow E, {BC} \rightarrow
+D, D \rightarrow A, E \rightarrow B\}$.
+
+  \item 关系模式$R ({BCDFGH})$.
+
+其函数依赖集为$\{{BG} \rightarrow {CD}, G \rightarrow F, {CD} \rightarrow {GH}, C \rightarrow {FG}, F \rightarrow D\}$.
+
+给出其同时保持函数依赖和无损的3NF分解.
+
+  \item $R ({ABCD})$上成立函数依赖$A \rightarrow
+{BCD}$和多值依赖$B \rightarrow \rightarrow C$.
+
+判断$R$的范式级别(提示: 小心掉坑, 还有哪些隐藏的函数依赖?)
+
+  \item 给出判断关系$r ({ABC})$上多值依赖$A \rightarrow \rightarrow
+B$是否成立的关系代数和SQL语句.
+
+  \item 给出函数依赖集$\{{ABCD} \rightarrow E, E \rightarrow D, A
+\rightarrow B, {AC} \rightarrow D\}$的最小覆盖.
+\end{problemset}

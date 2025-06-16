@@ -323,7 +323,7 @@ E-R模型: Entity-Relation Model.
 \end{figure}
 
 \begin{definition}[特化]
-    实体集中某些子集具有区别于该实体集内其它实体的特性，可以根据这些差异特性对实体集进行分组，这一分组的过程称作特化. 标识为 ISA 的三角形. ISA = “is a”.
+    实体集中某些子集具有区别于该实体集内其它实体的特性,可以根据这些差异特性对实体集进行分组,这一分组的过程称作特化. 标识为 ISA 的三角形. ISA = “is a”.
 \end{definition}
 
 \begin{definition}[概化]
@@ -407,4 +407,95 @@ E-R模型: Entity-Relation Model.
 
 !识别关系间的重合属性.
 
+\begin{itemize}
+    \item 出现$Tb(\underline{a_3, a_5},a_7)$, 这种情况时, 且$a_3, a_5$是别的关系的码, 则建模为关系
+    \item 出现了了$Tb1(\underline{a_1},a_2,a_3), Tb2(\underline{a_3}, a_4)$这样的重合时, 之间是一对多的关系
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{figure/逆向转换.pdf}
+    \caption{逆向转换}
+\end{figure}
+
+\begin{problemset}
+    \item 分别列举聚集、弱实体、细化/泛化的实用例子, 记得不要同讲义上的相同. 说明在此时采用这些扩展表示方法的优点.
+    \item 已知有如下关系模式: 
+  \begin{eqnarray*}
+    R_1 \left( \text{} \underline{a_1}, a_2, a_3 \right), & R_2 \left(
+    \underline{a_3}, a_4, a_1 \right), & R_3 \left( \underline{a_5}, a_6
+    \right),\\
+    R_4 \left( \underline{a_3, a_5}, a_7 \right), & R_5 \left( \underline{a_1,
+    a_3, a_5}, a_8 \right) & 
+  \end{eqnarray*}
+  其中带下划线的属性标识为所在关系模式的主码, 关系模式之间重合的属性是主外码关系, 体现了实体之间的联系.
+  
+  试画出相应的E-R图, 使得可以从该E-R图推导出上述关系模式.
+  \item 下面是一张NBA球员转会的汇总表格, 基于这些表格中的数据, 请画出合适的ER图.
+  \begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+交易ID & 转出球队 & 转出球队薪酬总额 & 转入球队 & 转入球队薪酬总额 & 交易球员 & 球员工资 & 交易时间 \\
+\hline
+T001 & 湖人 & 7500 & 骑士 & 8500 & 科比 & 3000 & 2016.05.07 \\
+\hline
+T001 & 骑士 & 8500 & 湖人 & 7500 & 勒布朗 & 2300 & 2016.05.07 \\
+\hline
+T001 & 勇士 & 7000 & 骑士 & 8500 & 库里 & 1500 & 2016.05.07 \\
+\hline
+T001 & 湖人 & 7500 & 勇士 & 7000 & 费舍尔 & 700 & 2016.05.07 \\
+\hline
+T001 & 骑士 & 8500 & 勇士 & 7000 & 欧文 & 800 & 2016.05.07 \\
+\hline
+T002 & 雷霆 & 8000 & 快船 & 8300 & 韦斯布鲁克 & 1200 & 2016.07.07 \\
+\hline
+T002 & 快船 & 8300 & 雷霆 & 8000 & 保罗 & 1200 & 2016.07.07 \\
+\hline
+\end{tabular}
+\caption{球员交易记录表}
+\label{tab:player_transactions}
+\end{table}
+    \item 假定以下是存储微信内容的数据库相关表, 请根据这些表画出微信的ER图.
+    \begin{itemize}
+    \item 信友({\underline{信友ID}}, 信友名, 昵称, 所在区域, 手机号)
+    \item 通讯录({\underline{信友1 ID,信友2 ID}},认识方式,认识时间)
+    \item 群({\underline{群ID}},群名称,群类型,创建时间,群主ID)
+    \item 群成员({\underline{群ID,信友ID}},加入时间,引介人ID,信友群内昵称)
+    \item 帖子({\underline{帖子ID}},发帖信友ID,所属群ID,帖子内容,发帖时间)
+    \item 短信({\underline{短信ID}},发送信友ID,接受信友ID,短信时间,短信内容)
+  \end{itemize}
+  \item 对于一个论文评审数据库,记录有如下信息: 
+  \begin{itemize}
+    \item 论文有{\underline{论文ID}}、标题、摘要、所属主题(一个)、作者(多位)、通讯作者(一位)
+    \item 作者有{\underline{作者ID}}、姓名、投稿论文(多篇)
+    \item 审稿人有{\underline{审稿人ID}}、email、所关心的主题(多个)
+    \item 主题有{\underline{主题ID}}、名称、主持人(由一位审稿人主持)
+    \item 每篇论文分配给4位审稿人,从可读性、创新性、相关性打分(1\~{}10分)
+    \item 每位审稿人生成书面意见反馈给通讯作者
+  \end{itemize}
+  请根据以上描述,画出其ER图.
+  \item 考察航班、航线、机场、机组、飞机、飞行员之间的业务关系,先罗列出来,尽可能地与实际情况相符,然后再画出相应的ER图.
+  
+  另外,MySQL自带了一个airport数据库,这个链接提供了相应的文档描述,\url{https://downloads.mysql.com/docs/airportdb-en.a4.pdf}.同学们也可以基于它来直接完成概念建模.
+  
+  airportdb的表结构如下图所示(可以询问大模型如何将下面的表关联图转换为ER模型):
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.5\textwidth]{figure/第2章-7.pdf}
+      \caption{airportdb的表结构}
+  \end{figure}
+  \item 请向大模型提问你感兴趣的业务系统,请它返回响应的数据库设计,然后再借助大模型把表格转为ER模型.
+  \begin{itemize}
+    \item 请设计一个数据库表结构能支持知乎网站的典型应用
+    \item 请设计一个数据库表结构能支持电子商务网站的典型应用
+  \end{itemize}
+\end{problemset}
+
+\begin{solution}
+\begin{enumerate}
+    \item 
+    \item 
+\end{enumerate}
+\end{solution}
 

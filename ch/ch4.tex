@@ -12,11 +12,11 @@ SQL: Structured Query Languang
 
 SQL语言的特点:
 \begin{enumerate}
-    \item 语言简洁，易学易用。
-    \item 面向集合的操作方式，一次一集合。
-    \item 高度非过程化。\textit{用户只需提出“做什么” ，无须告诉“怎么做”}
-    \item 一体化。单一的结构——关系，带来了数据操作符的统一。
-    \item 两种使用方式，统一的语法结构。
+    \item 语言简洁,易学易用.
+    \item 面向集合的操作方式,一次一集合.
+    \item 高度非过程化.\textit{用户只需提出“做什么” ,无须告诉“怎么做”}
+    \item 一体化.单一的结构——关系,带来了数据操作符的统一.
+    \item 两种使用方式,统一的语法结构.
     \begin{enumerate}
         \item 既是自含式(用户使用)的
         \item 又是嵌入式的(程序员使用)
@@ -41,7 +41,7 @@ SQL语言的特点:
   \caption{SQL主要操作符}
 \end{table}
 
-text2SQL: 建立自然语言与结构化数据之间的关系。
+text2SQL: 建立自然语言与结构化数据之间的关系.
 
 \section{数据定义}
 
@@ -226,7 +226,7 @@ Id & int & 对象标识号 \\ \hline
 xtype & char(2) & 对象类型 \\ \hline
 uid & smallint & 所有者对象的用户ID \\ \hline
 crdate & datetime & 对象的创建日期 \\ \hline
-schema\_ver & int & 版本号，该版本号在每次表的架构更改时都增加 \\ \hline
+schema\_ver & int & 版本号,该版本号在每次表的架构更改时都增加 \\ \hline
 \end{tabular}
 \caption{表定义相关的字典表: SQL Server}
 \end{table}
@@ -243,7 +243,7 @@ id & int & 该列所属的表对象ID \\ \hline
  xtype & tinyint & systypes 中的物理存储类型 \\ \hline
 xusertype & smallint & 扩展的用户定义数据类型ID \\ \hline
 length & smallint & systypes 中的最大物理存储长度 \\ \hline
-offset & smallint & 该列所在行的偏移量；如果为负，表示可变长度行 \\ \hline
+offset & smallint & 该列所在行的偏移量；如果为负,表示可变长度行 \\ \hline
 type & tinyint & systypes 中的物理存储类型 \\ \hline
 usertype & smallint & systypes 中的用户定义数据类型ID \\ \hline
 isnullable & int & 表示该列是否允许空值 \\ \hline
@@ -382,10 +382,10 @@ insert into test_enum values ('男', '2,4')
         \hline
         \textbf{特性} & \textbf{CHAR} & \textbf{VARCHAR} \\ \hline
         存储方式 &	固定长度 & 可变长度 \\ \hline
-        存储效率 & 可能浪费空间（固定长度填充空格） &	高效（仅存储实际数据 + 长度信息）\\ \hline
-        检索速度 & 更快（直接定位）& 稍慢（需计算长度） \\ \hline
-        适用场景 & 固定长度数据（如代码、哈希值） &	可变长度数据（如姓名、地址） \\ \hline
-        空格处理 & 自动填充空格（需注意业务逻辑） &	不填充空格 \\ \hline
+        存储效率 & 可能浪费空间(固定长度填充空格) &	高效(仅存储实际数据 + 长度信息)\\ \hline
+        检索速度 & 更快(直接定位)& 稍慢(需计算长度) \\ \hline
+        适用场景 & 固定长度数据(如代码、哈希值) &	可变长度数据(如姓名、地址) \\ \hline
+        空格处理 & 自动填充空格(需注意业务逻辑) &	不填充空格 \\ \hline
       \end{tabular}
     \end{table}
     \item 显式数据类型转换: 
@@ -593,8 +593,8 @@ I & 2 & 4 & 4 & 6 \\
 \end{definition}
 
 \begin{lstlisting}[language=SQL]
-create view view_name[(列名[，列名] ...)]
-  as （查询表达式）
+create view view_name[(列名[,列名] ...)]
+  as (查询表达式)
 [with check option]
 
 drop view view_name
@@ -680,13 +680,13 @@ create view joinV as
 \hline
  & 临时表 & 内存表 \\
 \hline
-存储 & 表结构和数据都存储在内存中 & 表结构存储在磁盘中，表数据存储在内存中 \\
+存储 & 表结构和数据都存储在内存中 & 表结构存储在磁盘中,表数据存储在内存中 \\
 \hline
 会话 & 单个会话独享 & 多个会话共享 \\
 \hline
 断开连接 & 表结构和表数据都没了 & 表结构和表数据都存在 \\
 \hline
-服务重启 & 表结构和表数据都没了 & 表结构存在，表数据不存在 \\
+服务重启 & 表结构和表数据都没了 & 表结构存在,表数据不存在 \\
 \hline
 \end{tabular}
 \caption{临时表与内存表的比较}
@@ -1133,7 +1133,7 @@ from SC
 where grade >=60
 group by sno
 
--- 列出每一年龄组中男学生（超过50人） 的人数
+-- 列出每一年龄组中男学生(超过50人) 的人数
 select age, count(sno)
 from student
 where sex = 'M'
@@ -1141,8 +1141,8 @@ group by age
 having count(*) > 50
 \end{lstlisting}
 
-\hyperlink{https://leetcode.cn/problems/sum-of-unique-elements/description/}{Leetcode 1748. 唯一元素的和}: \textit{给你一个整数数组 \texttt{nums}。数组中唯一元素是那些只出现恰好一次的元素。
-请你返回 \texttt{nums} 中唯一元素的和。}
+\hyperlink{https://leetcode.cn/problems/sum-of-unique-elements/description/}{Leetcode 1748. 唯一元素的和}: \textit{给你一个整数数组 \texttt{nums}.数组中唯一元素是那些只出现恰好一次的元素.
+请你返回 \texttt{nums} 中唯一元素的和.}
 
 我们把原来的 \verb|nums| 数组放在表 \verb|numTb| 的 \verb|nums| 列之中.
 \begin{lstlisting}[language=SQL]
@@ -1417,7 +1417,7 @@ VALUES
 -- 删除特定记录
 DELETE FROM employees WHERE employee_id = 100;
 
--- 删除所有记录（危险操作！）
+-- 删除所有记录(危险操作！)
 DELETE FROM employees;
 
 TRUNCATE TABLE logs; -- 清空 logs 表的所有数据
@@ -1437,7 +1437,7 @@ DELETE FROM orders
 OUTPUT DELETED.order_id, DELETED.customer_id
 WHERE order_date < '2023-01-01';
 
--- 合并订单数据：匹配则更新，否则插入
+-- 合并订单数据：匹配则更新,否则插入
 MERGE INTO orders AS target
 USING (SELECT * FROM temp_orders) AS source
 ON target.order_id = source.order_id
@@ -1543,7 +1543,7 @@ EXEC sp_executesql @SQL, N'@Name NVARCHAR(50)', @Name;
 \begin{enumerate}
     \item 批处理(Batch).一组 SQL 语句的集合, 通过 \verb|GO| 分隔.
 \begin{lstlisting}[language=SQL]
--- GO 是 SQL Server 的批处理分隔符（非 SQL 标准）
+-- GO 是 SQL Server 的批处理分隔符(非 SQL 标准)
 DECLARE @Msg NVARCHAR(50) = 'Hello';
 PRINT @Msg;
 GO

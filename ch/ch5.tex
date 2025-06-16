@@ -238,7 +238,7 @@ GRANT ALL PRIVILEGES ON database_name.* TO 'username'@'host';
     \end{itemize}
 \end{definition}
 
-在权限图上回收权限时, 要注意始终保证授权路径起点是DBA。
+在权限图上回收权限时, 要注意始终保证授权路径起点是DBA.
 
 授权命令:
 \begin{lstlisting}[language=SQL]
@@ -367,7 +367,7 @@ where   username = 'jake'
 \textbf{统计数据库安全性}:
 
 在某些高敏感性场景下, 为了保护隐私, 系统会限制用户只能进行 聚集查询(Aggregate Queries).
-攻击者仍可能通过多次合法的聚集查询 推理出某个个体的具体值, 这就叫作“统计推断攻击（Statistical Inference Attack）”.
+攻击者仍可能通过多次合法的聚集查询 推理出某个个体的具体值, 这就叫作“统计推断攻击(Statistical Inference Attack)”.
 \begin{itemize}
     \item 漏洞一: 个体太少. 如果只有一两个学生选了这门课, 那平均值就几乎等于个体值, 容易被推测出来.
     \item 漏洞二: 多次查询, 太多交叠. 通过多个查询结果相减来推出个体值.

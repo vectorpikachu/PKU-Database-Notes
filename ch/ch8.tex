@@ -156,7 +156,7 @@ $T_1$提交的结果破坏了$T_2$提交的结果, 导致$T_2$的修改丢失.
 解决方案:
 \begin{enumerate}
     \item 丢失修改: 两个事务不能同时修改同一数据项.
-    \item 读脏数据： 只能读取已提交数据。
+    \item 读脏数据： 只能读取已提交数据.
     \item 不能重复读: 两次读取之间不能有其他事务修改该数据项.
     \item 幻象: 两次读取不能插入.
 \end{enumerate}
@@ -187,7 +187,7 @@ $T_1$提交的结果破坏了$T_2$提交的结果, 导致$T_2$的修改丢失.
 
 快照隔离(Snapshot Isolation, SI)的基本思想: 多版本+回滚.
 \begin{itemize}
-  \item 对数据库的写发生在提交时, 形成数据项的一个提交版本（快照）.
+  \item 对数据库的写发生在提交时, 形成数据项的一个提交版本(快照).
   \item 执行时间和访问数据项有交叠的写事务之间会产生冲突, 先提交者赢.
   \item 读操作访问该读事务开始那一刻的数据项最新版本, 读写相互不会阻塞.
 \end{itemize}
@@ -247,7 +247,7 @@ SQL Server中的快照隔离:
 \end{definition}
 
 \begin{definition}[优先图]
-  调度$S$的优先图(Precedence Graph)是一个有向图$G=(V,E)$, $V$是顶点集，
+  调度$S$的优先图(Precedence Graph)是一个有向图$G=(V,E)$, $V$是顶点集,
   $E$是边集. 顶点集由所有参与调度的事务组成, 边集由满足下述条件之一的边$T_i\to T_j$组成:
   \begin{enumerate}
       \item 在$T_j$执行$\text{read}(Q)$之前, $T_i$执行$\text{write}(Q)$.
@@ -334,7 +334,7 @@ SQL Server中的快照隔离:
 $ T_f $ 为 $ S $ 中所有 $ \text{read}(Q) $ 操作. 
 在调度 $ S $ 的开头插入 $ T_b $, 在调度 $ S $ 的末尾插入 $ T_f $, 得到新的调度 $ S' $.
 \begin{enumerate}
-    \item 如果 $ T_j $ 读取 $ T_i $ 写入的数据项的值，则加入边 $ T_i \overset{0}{\to} T_j $.
+    \item 如果 $ T_j $ 读取 $ T_i $ 写入的数据项的值,则加入边 $ T_i \overset{0}{\to} T_j $.
     \item 如果在优先图中不存在从 $ T_i $ 到 $ T_f $ 的通路, 则 $ T_i $ 是无用事务, 将其删除.
     \item 对于每个数据项 $ Q $, 如果 $ T_j $ 读取 $ T_i $ 写入的 $ Q $ 值, $ T_k $ 执行 $ \text{write}(Q) $ 且 $ T_k \neq T_b $, 则: \textit{其实在考虑$T_i \overset{0}{\to} T_j$之间插入$T_k$.}
     \begin{enumerate}

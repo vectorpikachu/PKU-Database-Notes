@@ -124,7 +124,7 @@
 \begin{enumerate}
     \item 升级(upgrade): 从共享到排他的转换;
     \item 降级(downgrade): 从排他到共享的转换.
-    \item 升级只能发生在增长阶段, 而降级只能发生在缩减阶段。
+    \item 升级只能发生在增长阶段, 而降级只能发生在缩减阶段.
 \end{enumerate}
 
 \begin{problem}
@@ -281,7 +281,7 @@ SELECT * FROM student WHERE score > 90;  -- 返回张三
 -- 事务 T2：
 INSERT INTO student VALUES ('李四', 95); -- 成功
 -- T1 再次执行：
-SELECT * FROM student WHERE score > 90;  -- 返回张三和李四，幻读发生
+SELECT * FROM student WHERE score > 90;  -- 返回张三和李四,幻读发生
 \end{lstlisting}
 
 对于 \verb|select * from R where A >=10 and A <=20|, 在两次读取之间可能出现幻象(也就是两次读取之间出现了插入, 导致满足条件的元组发生了改变).

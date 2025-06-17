@@ -140,7 +140,7 @@
   在哪个隔离性级别下会出现锁转换?
 \end{problem}
 \begin{itemize}
-  \item repeated committed 以及更高的隔离级别
+  \item repeated read 以及更高的隔离级别
   \item Read committed 和 read uncommitted 不出现锁转换, 因为锁转换要求一直持有读锁, 没有释放.
 \end{itemize}
 
@@ -654,6 +654,41 @@ MySQL中的行锁模式: MySQL的行锁只出现在基于索引的查找中.
   \item $S(T_3)<F(T_2)$: 检查$RS(T_3)\cap WS(T_2) = \varnothing$是否成立.
 \end{itemize}
 
+\begin{example}
+  检查下面的各个事务有效性:
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.8\textwidth]{figure/有效性的例子.pdf}
+      \caption{有效性检查协议的另一个例子}
+  \end{figure}
+\end{example}
+
+\begin{solution}
+  \begin{enumerate}
+      \item 确认$T_2$: 没有其他确认事务, $T_2$确认成功, 写入$D$
+      \item 确认$T_1$: $T_2$已确认但尚未执行.
+      \begin{itemize}
+        \item $S(T_1)<F(T_2)$: 检查$RS(T_1)\cap WS(T_2) = \{A,B\} \cap \{D\} = \varnothing$;
+        \item $V(T_1)<F(T_2)$: 检查$WS(T_1)\cap WS(T_2) = \{A,C\} \cap \{D\} = \varnothing$.
+      \end{itemize}
+      $T_1$确认成功, 写入$A,B$.
+      \item 确认$T_3$: $T_2$已完成, $T_1$已确认但尚未执行.
+      \begin{itemize}
+        \item $S(T_3)<F(T_2)$: 检查$RS(T_3)\cap WS(T_2) = \{B\} \cap \{D\} = \varnothing$;
+        \item $S(T_1)<F(T_1)$: 检查$RS(T_3)\cap WS(T_1) = \{B\} \cap \{A,C\} = \varnothing$;
+        \item $V(T_3)<F(T_1)$: 检查$WS(T_3)\cap WS(T_1) = \{D,E\} \cap \{A,C\} = \varnothing$.
+      \end{itemize}
+      $T_3$确认成功, 写入$D,E$.
+      \item 确认$T_4$: $S(T_4)>F(T_2)$, 无需考虑两者之间的相交性.
+      \begin{itemize}
+        \item $S(T_4)<F(T_1)$: 检查$RS(T_4)\cap WS(T_1) = \{A,D\} \cap \{A,C\} = \{A\}$;
+        \item $S(T_4)<F(T_3)$: 检查$RS(T_4)\cap WS(T_3) = \{A,D\} \cap \{D,E\} = \{D\}$;
+        \item $V(T_4)<F(T_3)$: 检查$WS(T_4)\cap WS(T_3) = \{A,C\} \cap \{D,E\} = \varnothing$.
+      \end{itemize}
+      $T_4$确认失败.
+  \end{enumerate}
+\end{solution}
+
 \section{MVCC(Multi-Version Concurrency Control)}
 
 MVCC: Multi-Version Concurrency Control, 多版本并发控制.
@@ -708,14 +743,8 @@ InnoDB每行数据增加三个隐藏列用于实现MVCC:
 假设对于下面的两个事务$T_A$和$T_B$, 有下面的调度:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.8\textwidth]{figure/MVCC-shiwu.pdf}
+    \includegraphics[width=.7\textwidth]{figure/MVCC-shiwu.pdf}
     \caption{MySQL MVCC的一个例子}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=.8\textwidth]{figure/MVCC-2.pdf}
-    \caption{MVCC读取}
 \end{figure}
 
 现在我们首先假定: $T_A$处于read committed级别.
@@ -760,6 +789,12 @@ InnoDB每行数据增加三个隐藏列用于实现MVCC:
     \end{itemize}
     $T_B$此时已经提交, 此时有: $\text{min\_trx\_id}\leq \text{db\_trx\_id}(\text{record}_{\text{id}=1})<\text{max\_trx\_id}$, 但是$T_B$还在活跃队列之中, 所以它对于$T_A$不可见, 继续沿着db\_roll\_ptr回溯其他版本.
 \end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{figure/MVCC-2.pdf}
+    \caption{MVCC读取}
+\end{figure}
 
 \textcolor{red}{repeatable read下事务的read\_view保持不变.}
 

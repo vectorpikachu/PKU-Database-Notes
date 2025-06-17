@@ -874,3 +874,43 @@ ps. 鉴于PPT里出现了若干次“验算”和若干次“演算”, 下面�
   \item 求选修$c_1$课程成绩比$s_1$同学的该门课程成绩高的学生
 \end{enumerate}
 \end{problemset}
+
+\begin{solution}
+\begin{enumerate}
+    \item 第1题:
+    \begin{enumerate}
+        \item \begin{align*}
+            \Pi_{SNAME}(\sigma_{J.CITY=\text{'北京'}}(S \bowtie SPJ \bowtie J)) \cap \Pi_{SNAME}(\sigma_{J.CITY=\text{'北京'}}(S \bowtie SPJ \bowtie J))
+        \end{align*}
+        \item \begin{align*}
+            \Pi_{S.SNO}(\sigma_{S.CITY=J.CITY}(S \bowtie SPJ \bowtie J))
+        \end{align*}
+        \item 向不同城市的工程供应零件的供应商 - 向和自己位于相同城市的工程供应零件的供应商
+        \begin{align*}
+            \Pi_{S.SNO}(\sigma_{S.CITY\neq J.CITY}(S \bowtie SPJ \bowtie J)) - \Pi_{S.SNO}(\sigma_{S.CITY=J.CITY}(S \bowtie SPJ \bowtie J))
+        \end{align*}
+        \item 使用除法操作.
+        \begin{align*}
+            \Pi_{SNO,JNO}(SPJ) \div \Pi_{JNO}(\sigma_{CITY=\text{'北京'}}(J))
+        \end{align*}
+        \item \begin{align*}
+            \Pi_{PNO}(P) - \Pi_{R.PNO}(\sigma_{R.PRICE<S.PRICE}(\rho_R(P)\times \rho_S(P)))
+        \end{align*}
+    \end{enumerate}
+    \item 第2题:
+    \begin{enumerate}
+        \item 选修了$c_1$和$c_2$课程的学生-选修了$c_1$和非$c_2$课程的学生-选修了$c_2$和非$c_1$课程的学生
+        \item 选修了和$s_1$不同课程的同学-选修了和$s_1$相同课程的学生
+    \end{enumerate}
+    \item 第3题: 使用下面的式子
+    \begin{align*}
+        \sigma_{R_1.A=R_2.A \land R_1.B \neq R_2.B}(\rho_{R_1}(R) \times \rho_{R_2}(R))
+    \end{align*}
+    检查结果是否为空.
+
+    同样的道理
+    \begin{align*}
+        \sigma_{R_1.A=R_2.A \land (R_1.B \neq R_2.B \lor R_1.C \neq R_2.C)}(\rho_{R_1}(R) \times \rho_{R_2}(R))
+    \end{align*}
+\end{enumerate}
+\end{solution}

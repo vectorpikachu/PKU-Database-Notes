@@ -344,11 +344,34 @@ $ T_f $ 为 $ S $ 中所有 $ \text{read}(Q) $ 操作.
         \textit{这实际上是说这两条边二选一.}
     \end{enumerate}
 \end{enumerate}
-标号为0的边组成底图, 标号为$p$的取出一条可以形成两张图, 判定是否有环.
+标号为0的边组成底图, 标号为$p$的取出一条(因为标号为$p$的边实际上是一对的)可以形成两张图, 判定是否有环.
 
 \begin{theorem}[视图可串行化判定准则]
   只要有一个优先图无环, 则调度是视图可串行化的.
 \end{theorem}
+
+\begin{example}\label{thm:shitu}
+  $r_1(A);r_1(B);w_2(A);w_2(B);w_1(A);r_3(B);w_3(A);w_1(B);w_3(B)$是否视图可串行化?
+\end{example}
+
+\begin{solution}
+  首先画出从读关系:
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.5\textwidth]{figure/视图可串行化-1.pdf}
+  \end{figure}
+  对于$A$: $T_1$读取$T_b$写入的值; $T_2,T_3$写. 只能插在$T_1$后面.
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.5\textwidth]{figure/视图可串行化-2.pdf}
+  \end{figure}
+  对于$B$: $T_1$读取$T_b$写入的值, $T_3$读取$T_2$写入的值; $T_2,T_1,T_3$都在写.
+  \begin{figure}[H]
+      \centering
+      \includegraphics[width=.5\textwidth]{figure/视图可串行化-3.pdf}
+  \end{figure}
+  可以发现选择上面的那条标号为1的边, 是没有环的, 因此是视图可串行化的.
+\end{solution}
 
 存在可串行化但非视图可串行化的调度:
 \begin{figure}[H]

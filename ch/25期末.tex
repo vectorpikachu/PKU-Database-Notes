@@ -1,0 +1,81 @@
+\section{25春季期末部分考试题目}
+
+\subsection{第一题}
+
+部分回忆:
+\begin{enumerate}
+    \item 对于一个包含一个聚集和一个多对多联系的ER图, 其中最少的关系模式为\underline{\quad}个.
+    \item $R(A,B,C)$有10个元组, 不含有null, $\Pi_{AB}(R) \bowtie \Pi_{AC}(R)$的元组数目的范围为\underline{\quad}.
+    \item 写出$A\to B$定义的关系代数表达式\underline{\quad}; 写出$A\to \to B$定义的关系代数表达式.
+    \item 可以避免出现转换死锁的最高隔离级别是\underline{\quad}.
+    \item 应该有一道关于\textcolor{red}{快照隔离中的写偏斜}的题目.
+    \item 对于关系模式$R(ABCDEF)$, $F=\{A\to B,C\to D, E\to F\}$, 无损BCNF分解有\underline{\quad}种分解结果.
+    \item $X\to Y, WY\to Z$, 则$WX\to Z$, 这条规则叫\underline{\quad}, 写出Armstrong公理体系的增广律: \underline{\quad}.
+    \item 属性全是主属性, 最高一定可达范式为\underline{\quad}; 全码关系模式, 最高一定可达范式.
+    \item ARIES中脏页表中记录引起该页变脏的第一个日志记录的是\underline{\quad}; 页面结构中包含对该页面所做的最近更新日志记录的是\underline{\quad}.
+    \item 使用哈希连接时, 大的表应该\underline{\quad}.
+    \item RAID的区别, 最快的是哪个
+    \item 聚簇索引和覆盖索引的概念
+    \item 保存点 vs. 检查点
+    \item 按照相同顺序访问破坏了死锁的\underline{\quad}条件, wait-die破坏了死锁的\underline{\quad}条件.
+    \item 数据结构相关的一个概念.
+\end{enumerate}
+
+\subsection{第二题}
+
+部分回忆:
+\begin{enumerate}
+    \item 给出了一个元组关系演算表达式:
+    \begin{align*}
+        \{t|t\in R \land \exists u \in R(u[A]=t[B]\land u[B]=t[A])\}
+    \end{align*}
+    转换成域关系演算表达式.
+    \item 找出下面的和数据库安全性相关的几个术语.
+    \item 判断可以和IU相容的锁, 可以和IX相容的锁.
+    \item 以下哪些可以提升事务吞吐率：1. 提升隔离性级别 2. 提升封锁度 3. 提升checkpoint生成频率 4. 不同事务相反顺序访问数据项 5. 大事务分解成多个小事务 6. 使用索引
+    \item 对于$R(A)=\{1,2\}, S(B)=\{3,4,5,6\}$, 写了一个 \verb|create trigger before insert on A|...
+\end{enumerate}
+
+\subsection{三、关系代数}
+
+部分回忆:
+\begin{enumerate}
+    \item 用普通的关系代数写出除法的操作.
+    \item 用普通的关系代数写出左外连接.
+    \item 使用关系代数求出$R(A)$的最小值.
+    \item ...
+\end{enumerate}
+
+\subsection{四、SQL}
+
+使用SQL完成下面的任务.
+
+对于给定的关系 \verb|stocks(stock_no, day_time, price)|:
+\begin{enumerate}
+    \item 找出满足“涨跌涨跌涨跌……”这样的所有股票.
+    \item 找出类似于 \verb|Nums(id)={1,2,7,8,9}| 中间的间隔, 也就是这里本来应该是一个连续的自然数列, 但是中间断开了, 间隔就是2和7中间的$(3,6)$, 现在假设这样的间隔最多只有1个.
+    \item 现在新增一个字段 \verb|flag|, \verb|flag| = 1表示比前一天涨, -1表示跌, 0表示持平. 找出哪一天有最多支股票涨.
+\end{enumerate}
+
+\subsection{五、关系规范化}
+
+对于一个关系模式, 先判断候选码, 再判断范式级别, 然后给了一个分解, 判断是否是无损的.
+
+\subsection{六、E-R设计}
+
+大概是一张表, 字段有比赛编号、比赛日期、球队名、主客场、城市、球员、进球数、积分..., 具体不太记得.
+
+根据这个表设计一张E-R图.
+
+如果去掉比赛编号, 你会如何修改你的E-R设计?
+
+2. 给出了一个关系模式, 还有函数依赖, 要求画出E-R图. (Hint: 使用保持函数依赖和无损的3NF分解, 然后画出ER图.)
+
+\subsection{七、协议}
+
+\begin{enumerate}
+    \item 手算一个视图可串行化的模拟, 大约是: $r_1(A);r_1(B);w_2(A);w_2(B);w_1(A);r_3(B);w_3(A);w_1(B);w_3(B)$是否视图可串行化?
+    \item 手算一个快照隔离
+    \item 手算一个基于时间戳的协议
+    \item 手算一个基于有效性检查的协议, 是PPT上的例子.
+\end{enumerate}
